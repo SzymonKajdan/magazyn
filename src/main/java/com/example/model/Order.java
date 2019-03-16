@@ -5,6 +5,7 @@ import com.example.security.model.User;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 
 @Entity(name = "ORDERS")
 @Table(name = "ORDERS")
@@ -16,8 +17,8 @@ public class Order {
     @SequenceGenerator(name = "order_seq", sequenceName = "order_seq", allocationSize = 1)
     private Long id;
 
-    @OneToOne
-    private Product product;
+    @OneToMany
+    private List<Product> product;
 
     @OneToOne
     private User user;
@@ -42,14 +43,6 @@ public class Order {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
     }
 
     public User getUser() {
@@ -90,5 +83,13 @@ public class Order {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public List<Product> getProduct() {
+        return product;
+    }
+
+    public void setProduct(List<Product> product) {
+        this.product = product;
     }
 }

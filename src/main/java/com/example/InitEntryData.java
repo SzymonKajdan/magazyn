@@ -85,7 +85,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order1.setEndDate(new Date());
             order1.setPrice(100.0);
             order1.setUser(user);
-            order1.setProduct(product1);
+            order1.setProduct(new ArrayList<Product>(Arrays.asList(product1)));
 
             locationRepository.save(location1);
             productRepository.save(product1);
@@ -107,7 +107,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order2.setEndDate(new Date());
             order2.setPrice(200.0);
             order2.setUser(user);
-            order2.setProduct(product2);
+            order2.setProduct(new ArrayList<Product>(Arrays.asList(product2)));
 
             locationRepository.save(location2);
             productRepository.save(product2);
@@ -129,7 +129,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order3.setEndDate(new Date());
             order3.setPrice(200.0);
             order3.setUser(user);
-            order3.setProduct(product3);
+            order3.setProduct(new ArrayList<Product>(Arrays.asList(product3)));
 
             locationRepository.save(location3);
             productRepository.save(product3);
