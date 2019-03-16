@@ -3,6 +3,7 @@ package com.example.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Date;
 
 @Entity
 @Table(name = "PRODUCT")
@@ -25,6 +26,19 @@ public class Product {
     @Column(name = "PRICE")
     @NotNull
     private Double price;
+
+    @Column(name = "quantityOnThePalette")
+    @NotNull
+    private int quantityOnThePalette;
+
+    @Column(name = "quanitity")
+    @NotNull
+    private int quanitity;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @NotNull
+    private Date exprDate;
+
 
     public Long getId() {
         return id;
@@ -56,5 +70,29 @@ public class Product {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public Date getExprDate() {
+        return exprDate;
+    }
+
+    public void setExprDate(Date exprDate) {
+        this.exprDate = exprDate;
+    }
+
+    public int getQuanitity() {
+        return quanitity;
+    }
+
+    public void setQuanitity(int quanitity) {
+        this.quanitity = quanitity;
+    }
+
+    public int getQuantityOnThePalette() {
+        return quantityOnThePalette;
+    }
+
+    public void setQuantityOnThePalette(int quantityOnThePalette) {
+        this.quantityOnThePalette = quantityOnThePalette;
     }
 }

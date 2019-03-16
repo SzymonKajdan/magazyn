@@ -34,8 +34,12 @@ public class Order {
     private Date date;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @NotNull
+
     private Date endDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+
+    private Date departureDate;;
 
     public Long getId() {
         return id;
@@ -91,5 +95,13 @@ public class Order {
 
     public void setProduct(List<Product> product) {
         this.product = product;
+    }
+
+    public Date getDepartureDate() {
+        return departureDate;
+    }
+
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
     }
 }

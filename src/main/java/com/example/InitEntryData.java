@@ -77,6 +77,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product1.setBarCode("xdddd");
             product1.setLocation(location1);
             product1.setPrice(100.0);
+            product1.setExprDate(new Date(1003000));
+            product1.setQuantityOnThePalette(150);
+            product1.setQuanitity(100);
+
 
             Date date1 = new Date(1000000);
 
@@ -99,6 +103,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product2.setBarCode("xdddd2");
             product2.setLocation(location2);
             product2.setPrice(200.0);
+            product2.setExprDate(new Date(1003000));
+            product2.setQuantityOnThePalette(200);
+            product2.setQuanitity(200);
 
             Date date2 = new Date(1020000);
 
@@ -121,6 +128,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product3.setBarCode("xdddd3");
             product3.setLocation(location3);
             product3.setPrice(200.0);
+            product3.setQuanitity(80);
+            product3.setQuantityOnThePalette(90);
+            product3.setExprDate(new Date());
 
             Date date3 = new Date(1003000);
 
