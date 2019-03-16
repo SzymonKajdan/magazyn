@@ -75,11 +75,11 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product product1 = new Product();
             product1.setBarCode("xdddd");
-            product1.setLocation(location1);
+            product1.setLocation(new ArrayList<Location>(Arrays.asList(location1)));
             product1.setPrice(100.0);
             product1.setExprDate(new Date(1003000));
             product1.setQuantityOnThePalette(150);
-            product1.setQuanitity(100);
+
 
 
             Date date1 = new Date(1000000);
@@ -89,7 +89,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order1.setEndDate(new Date());
             order1.setPrice(100.0);
             order1.setUser(user);
-            order1.setProduct(new ArrayList<Product>(Arrays.asList(product1)));
+
 
             locationRepository.save(location1);
             productRepository.save(product1);
@@ -101,11 +101,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product product2 = new Product();
             product2.setBarCode("xdddd2");
-            product2.setLocation(location2);
+            product2.setLocation(new ArrayList<Location>(Arrays.asList(location2)));
             product2.setPrice(200.0);
             product2.setExprDate(new Date(1003000));
             product2.setQuantityOnThePalette(200);
-            product2.setQuanitity(200);
 
             Date date2 = new Date(1020000);
 
@@ -114,7 +113,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order2.setEndDate(new Date());
             order2.setPrice(200.0);
             order2.setUser(user);
-            order2.setProduct(new ArrayList<Product>(Arrays.asList(product2)));
+
 
             locationRepository.save(location2);
             productRepository.save(product2);
@@ -126,9 +125,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product product3 = new Product();
             product3.setBarCode("xdddd3");
-            product3.setLocation(location3);
+            product3.setLocation(new ArrayList<Location>(Arrays.asList(location3)));
             product3.setPrice(200.0);
-            product3.setQuanitity(80);
+
             product3.setQuantityOnThePalette(90);
             product3.setExprDate(new Date());
 
@@ -139,7 +138,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order3.setEndDate(new Date());
             order3.setPrice(200.0);
             order3.setUser(user);
-            order3.setProduct(new ArrayList<Product>(Arrays.asList(product3)));
+
 
             locationRepository.save(location3);
             productRepository.save(product3);

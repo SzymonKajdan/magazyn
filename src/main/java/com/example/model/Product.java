@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "PRODUCT")
@@ -20,8 +21,8 @@ public class Product {
     @Size(min = 4, max = 100)
     private String barCode;
 
-    @OneToOne
-    private Location location;
+    @OneToMany
+    private List<Location> location;
 
     @Column(name = "PRICE")
     @NotNull
@@ -31,14 +32,11 @@ public class Product {
     @NotNull
     private int quantityOnThePalette;
 
-    @Column(name = "quanitity")
-    @NotNull
-    private int quanitity;
-
     @Temporal(TemporalType.TIMESTAMP)
     @NotNull
     private Date exprDate;
 
+    private String podrucer;
 
     public Long getId() {
         return id;
@@ -56,11 +54,12 @@ public class Product {
         this.barCode = barCode;
     }
 
-    public Location getLocation() {
+
+    public List<Location> getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(List<Location> location) {
         this.location = location;
     }
 
@@ -80,13 +79,7 @@ public class Product {
         this.exprDate = exprDate;
     }
 
-    public int getQuanitity() {
-        return quanitity;
-    }
 
-    public void setQuanitity(int quanitity) {
-        this.quanitity = quanitity;
-    }
 
     public int getQuantityOnThePalette() {
         return quantityOnThePalette;
@@ -94,5 +87,13 @@ public class Product {
 
     public void setQuantityOnThePalette(int quantityOnThePalette) {
         this.quantityOnThePalette = quantityOnThePalette;
+    }
+
+    public String getPodrucer() {
+        return podrucer;
+    }
+
+    public void setPodrucer(String podrucer) {
+        this.podrucer = podrucer;
     }
 }
