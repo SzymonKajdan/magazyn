@@ -22,7 +22,7 @@ public class Location {
 
     @Column(name = "AMOUNTOFPRODUCT")
     @NotNull
-    private Double amountOfProduct;
+    private int amountOfProduct;
 
     public Long getId() {
         return id;
@@ -40,11 +40,11 @@ public class Location {
         this.barCodeLocation = barCodeLocation;
     }
 
-    public Double getAmountOfProduct() {
+    public int getAmountOfProduct() {
         return amountOfProduct;
     }
 
-    public void setAmountOfProduct(Double amountOfProduct) {
+    public void setAmountOfProduct(int amountOfProduct) {
         this.amountOfProduct = amountOfProduct;
     }
 }

@@ -12,42 +12,56 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/clients")
 public class WorkerController {
 
     @Autowired PrincipalRepository principalRepository;
 
-    @RequestMapping(path = "/clients", method = RequestMethod.GET)
+    @RequestMapping(path = "", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipals() {
         return ResponseEntity.ok(principalRepository.findAll());
     }
 
-    @RequestMapping(path = "/clientsOrderBy", method = RequestMethod.GET)
+    @RequestMapping(path = "/orderByBrand", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipalsOrderByBrand() {
-        return ResponseEntity.ok(principalRepository.findAll());
+        return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
     }
 
-    @RequestMapping(path = "/clients", method = RequestMethod.PUT)
+    @RequestMapping(path = "", method = RequestMethod.PUT)
     public ResponseEntity<?> addPrincipal(@RequestBody Principal p) {
-        principalRepository.save(p);
-        return ResponseEntity.ok("Success");
+
+        if(!principalRepository.existsByNip(p.getNip())) {
+            principalRepository.save(p);
+            return ResponseEntity.ok("Success");
+        }
+        else{
+            return new ResponseEntity<>("NIP_ALREADY_EXISTS", HttpStatus.CONFLICT);
+        }
     }
 
-    @RequestMapping(path = "/clients", method = RequestMethod.DELETE)
+    @RequestMapping(path = "", method = RequestMethod.DELETE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
         if(!json.isNull("id")) {
-            principalRepository.deleteById(json.getLong("id"));
-            return ResponseEntity.ok("Success");
+            long id = json.getLong("id");
+            if(principalRepository.existsById(id)) {
+                principalRepository.deleteById(id);
+                return ResponseEntity.ok("Success");
+            }
         }
         if(!json.isNull("nip")){
-            principalRepository.deleteByNip(json.getString("nip"));
-            return ResponseEntity.ok("Success");
+            String nip = json.getString("nip");
+            if(principalRepository.existsByNip(nip)) {
+                principalRepository.deleteById(principalRepository.findByNip(nip).getId());
+                //principalRepository.deleteByNip(nip);
+                return ResponseEntity.ok("Success");
+            }
         }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "/clients", method = RequestMethod.POST)
+    @RequestMapping(path = "", method = RequestMethod.POST)
     public ResponseEntity<?> findPrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);

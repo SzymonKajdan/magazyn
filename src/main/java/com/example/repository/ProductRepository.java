@@ -8,9 +8,13 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    List<Product> findByPriceOrderByPrice(double price);
+    List<Product> findAllByOrderByPrice();
+
+    List<Product> findAllByOrderByName();
 
     Product findByBarCode(String barcode);
 
     Product findProductByBarCode(String barcode);
+
+    Boolean existsByBarCode(String barcode);
 }

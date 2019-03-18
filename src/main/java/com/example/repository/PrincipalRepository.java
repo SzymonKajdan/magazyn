@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository(value = "PrincipalRepository")
 public interface PrincipalRepository extends JpaRepository<Principal, Long> {
 
     Principal findByNip(String nip);
     List<Principal> findAllByOrderByCompanyName();
     void deleteByNip(String nip);
+    Boolean existsByNip(String nip);
 }

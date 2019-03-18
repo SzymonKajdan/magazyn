@@ -70,13 +70,15 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             //-----------------------------//
 
             Location location1 = new Location();
-            location1.setAmountOfProduct(100.0);
+            location1.setAmountOfProduct(100);
             location1.setBarCodeLocation("xdddd");
 
             Product product1 = new Product();
             product1.setBarCode("xdddd");
-            product1.setLocation(location1);
+            product1.setLocations(new ArrayList<Location>(Arrays.asList(location1)));
+            product1.setName("produkt1");
             product1.setPrice(100.0);
+            product1.setExprDate(new Date());
 
             Date date1 = new Date(1000000);
 
@@ -92,13 +94,15 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             orderRepository.save(order1);
 
             Location location2 = new Location();
-            location2.setAmountOfProduct(120.0);
+            location2.setAmountOfProduct(120);
             location2.setBarCodeLocation("xddd2");
 
             Product product2 = new Product();
             product2.setBarCode("xdddd2");
-            product2.setLocation(location2);
+            product2.setLocations(new ArrayList<Location>(Arrays.asList(location2)));
+            product2.setName("produkt2");
             product2.setPrice(200.0);
+            product2.setExprDate(new Date());
 
             Date date2 = new Date(1020000);
 
@@ -114,13 +118,15 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             orderRepository.save(order2);
 
             Location location3 = new Location();
-            location3.setAmountOfProduct(120.0);
+            location3.setAmountOfProduct(120);
             location3.setBarCodeLocation("xddd3");
 
             Product product3 = new Product();
             product3.setBarCode("xdddd3");
-            product3.setLocation(location3);
+            product3.setLocations(new ArrayList<Location>(Arrays.asList(location3)));
+            product3.setName("produkt3");
             product3.setPrice(200.0);
+            product3.setExprDate(new Date());
 
             Date date3 = new Date(1003000);
 
