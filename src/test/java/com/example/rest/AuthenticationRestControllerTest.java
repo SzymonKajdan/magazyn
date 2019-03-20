@@ -75,12 +75,12 @@ public class AuthenticationRestControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    @WithMockUser(roles = "WORKER")
     public void successfulRefreshTokenWithUserRole() throws Exception {
 
         Authority authority = new Authority();
         authority.setId(0L);
-        authority.setName(AuthorityName.ROLE_USER);
+        authority.setName(AuthorityName.ROLE_WORKER);
         List<Authority> authorities = Arrays.asList(authority);
 
         User user = new User();
@@ -103,12 +103,12 @@ public class AuthenticationRestControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "MANAGER")
     public void successfulRefreshTokenWithAdminRole() throws Exception {
 
         Authority authority = new Authority();
         authority.setId(1L);
-        authority.setName(AuthorityName.ROLE_ADMIN);
+        authority.setName(AuthorityName.ROLE_MANAGER);
         List<Authority> authorities = Arrays.asList(authority);
 
         User user = new User();

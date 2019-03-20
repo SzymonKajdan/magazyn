@@ -31,18 +31,18 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 
-        if(authorityRepository.findByName(AuthorityName.ROLE_ADMIN)==null) {
+        if(authorityRepository.findByName(AuthorityName.ROLE_MANAGER)==null) {
             Authority adminRole = new Authority();
-            adminRole.setName(AuthorityName.ROLE_ADMIN);
+            adminRole.setName(AuthorityName.ROLE_MANAGER);
 
             Authority userRole = new Authority();
-            userRole.setName(AuthorityName.ROLE_USER);
+            userRole.setName(AuthorityName.ROLE_WORKER);
 
             authorityRepository.save(adminRole);
             authorityRepository.save(userRole);
 
-            adminRole = authorityRepository.findByName(AuthorityName.ROLE_ADMIN);//.orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
-            userRole = authorityRepository.findByName(AuthorityName.ROLE_USER);//.orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+            adminRole = authorityRepository.findByName(AuthorityName.ROLE_MANAGER);//.orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
+            userRole = authorityRepository.findByName(AuthorityName.ROLE_WORKER);//.orElseThrow(() -> new RuntimeException("Fail! -> Cause: User Role not find."));
 
             User admin = new User();
             admin.setEmail("admin@email.pl");

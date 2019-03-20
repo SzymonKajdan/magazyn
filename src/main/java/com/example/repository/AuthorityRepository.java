@@ -2,6 +2,7 @@ package com.example.repository;
 
 import com.example.security.model.Authority;
 import com.example.security.model.AuthorityName;
+import com.example.security.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

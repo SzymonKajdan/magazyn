@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/clients")
+@RequestMapping("/client")
 public class WorkerController {
 
     @Autowired PrincipalRepository principalRepository;
 
-    @RequestMapping(path = "", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipals() {
         return ResponseEntity.ok(principalRepository.findAll());
     }
 
-    @RequestMapping(path = "/orderByBrand", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAllByOrderByCompanyName", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipalsOrderByBrand() {
         return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
     }
 
-    @RequestMapping(path = "", method = RequestMethod.PUT)
+    @RequestMapping(path = "/add", method = RequestMethod.PUT)
     public ResponseEntity<?> addPrincipal(@RequestBody Principal p) {
 
         if(!principalRepository.existsByNip(p.getNip())) {
@@ -39,7 +39,7 @@ public class WorkerController {
         }
     }
 
-    @RequestMapping(path = "", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -61,7 +61,7 @@ public class WorkerController {
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "", method = RequestMethod.POST)
+    @RequestMapping(path = "/find", method = RequestMethod.GET)
     public ResponseEntity<?> findPrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);

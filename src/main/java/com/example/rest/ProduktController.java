@@ -14,23 +14,23 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/product")
 public class ProduktController {
 
     @Autowired
     ProductRepository productRepository;
 
-    @RequestMapping(path = "", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<?> getAllProducts() {
         return ResponseEntity.ok(productRepository.findAll());
     }
 
-    @RequestMapping(path = "/orderByName", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAllByOrderByName", method = RequestMethod.GET)
     public ResponseEntity<?> getAllProductsOrderByName() {
         return ResponseEntity.ok(productRepository.findAllByOrderByName());
     }
 
-    @RequestMapping(path = "", method = RequestMethod.PUT)
+    @RequestMapping(path = "/add", method = RequestMethod.PUT)
     public ResponseEntity<?> addProduct(@RequestBody Product p) {
 
         if(!productRepository.existsByBarCode(p.getBarCode())) {
@@ -43,7 +43,7 @@ public class ProduktController {
         }
     }
 
-    @RequestMapping(path = "", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteProduct(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -65,7 +65,7 @@ public class ProduktController {
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "", method = RequestMethod.POST)
+    @RequestMapping(path = "/find", method = RequestMethod.GET)
     public ResponseEntity<?> findProduct(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);

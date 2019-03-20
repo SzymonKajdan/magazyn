@@ -61,12 +61,12 @@ public class UserRestControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    @WithMockUser(roles = "WORKER")
     public void getPersonsSuccessfullyWithUserRole() throws Exception {
 
         Authority authority = new Authority();
         authority.setId(1L);
-        authority.setName(AuthorityName.ROLE_ADMIN);
+        authority.setName(AuthorityName.ROLE_WORKER);
         List<Authority> authorities = Arrays.asList(authority);
 
         User user = new User();

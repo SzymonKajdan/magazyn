@@ -1,5 +1,5 @@
 package com.example.security.model;
 
 public enum AuthorityName {
-    ROLE_USER, ROLE_ADMIN
+    ROLE_MANAGER, ROLE_WORKER
 }
