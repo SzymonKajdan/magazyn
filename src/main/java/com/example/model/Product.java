@@ -36,7 +36,11 @@ public class Product {
     @NotNull
     private Date exprDate;
 
-    private String podrucer;
+    private String producer;
+
+    private int logicState;
+
+    private  String name;
 
     public Long getId() {
         return id;
@@ -80,7 +84,6 @@ public class Product {
     }
 
 
-
     public int getQuantityOnThePalette() {
         return quantityOnThePalette;
     }
@@ -89,11 +92,29 @@ public class Product {
         this.quantityOnThePalette = quantityOnThePalette;
     }
 
-    public String getPodrucer() {
-        return podrucer;
+
+
+    public int getLogicState() {
+        return logicState;
     }
 
-    public void setPodrucer(String podrucer) {
-        this.podrucer = podrucer;
+    public void setLogicState(int logicState) {
+        this.logicState = logicState;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
     }
 }

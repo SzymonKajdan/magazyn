@@ -13,25 +13,28 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.*;
 
 @Component
 public class InitEntryData implements ApplicationListener<ContextRefreshedEvent> {
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private AuthorityRepository authorityRepository;
-    @Autowired private LocationRepository locationRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private PasswordEncoder encoder;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AuthorityRepository authorityRepository;
+    @Autowired
+    private LocationRepository locationRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private PasswordEncoder encoder;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 
-        if(authorityRepository.findByName(AuthorityName.ROLE_ADMIN)==null) {
+        if (authorityRepository.findByName(AuthorityName.ROLE_ADMIN) == null) {
             Authority adminRole = new Authority();
             adminRole.setName(AuthorityName.ROLE_ADMIN);
 
@@ -79,7 +82,12 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product1.setPrice(100.0);
             product1.setExprDate(new Date(1003000));
             product1.setQuantityOnThePalette(150);
+            product1.setName("maka");
 
+
+            for (Location l : product1.getLocation()) {
+                product1.setLogicState((int) (product1.getLogicState()+l.getAmountOfProduct()));
+            }
 
 
             Date date1 = new Date(1000000);
@@ -95,16 +103,25 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             productRepository.save(product1);
             orderRepository.save(order1);
 
+
             Location location2 = new Location();
             location2.setAmountOfProduct(120.0);
             location2.setBarCodeLocation("xddd2");
 
+
+            Location location4=new Location();
+            location4.setBarCodeLocation("xddd4");
+            location4.setAmountOfProduct(200.0);
+
             Product product2 = new Product();
             product2.setBarCode("xdddd2");
-            product2.setLocation(new ArrayList<Location>(Arrays.asList(location2)));
+            product2.setLocation(new ArrayList<Location>(Arrays.asList(location2,location4)));
             product2.setPrice(200.0);
             product2.setExprDate(new Date(1003000));
             product2.setQuantityOnThePalette(200);
+            for (Location l : product2.getLocation()) {
+                product2.setLogicState((int) (product2.getLogicState()+l.getAmountOfProduct()));
+            }
 
             Date date2 = new Date(1020000);
 
@@ -115,7 +132,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order2.setUser(user);
 
 
+
             locationRepository.save(location2);
+            locationRepository.save(location4);
             productRepository.save(product2);
             orderRepository.save(order2);
 
@@ -130,6 +149,12 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             product3.setQuantityOnThePalette(90);
             product3.setExprDate(new Date());
+            product3.setName("maka");
+
+            for (Location l : product3.getLocation()) {
+                product3.setLogicState((int) (product3.getLogicState()+l.getAmountOfProduct()));
+            }
+
 
             Date date3 = new Date(1003000);
 

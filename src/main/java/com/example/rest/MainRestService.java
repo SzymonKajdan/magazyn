@@ -1,8 +1,8 @@
 package com.example.rest;
 
 import com.example.model.*;
-import com.example.parsers.ProductParser;
 import com.example.repository.*;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.example.Counters.CounterPhysicalState.countPhyscialState;
 import static com.example.parsers.OrderParser.orderParser;
 import static com.example.parsers.PrincipalParser.*;
-import static com.example.parsers.ProductParser.productParser;
 import static com.example.parsers.UsedProductParser.usedProductParser;
 
 @RestController
@@ -49,122 +48,79 @@ public class MainRestService {
         return ResponseEntity.ok(orderRepository.findAllByOrderByDateDsc());
     }
 
-    @RequestMapping(path = "/createOrder", method = RequestMethod.POST)
-    public ResponseEntity<?> createOrder(@RequestBody String orderRequest) {
 
-        JSONObject jsonOrder = new JSONObject(orderRequest);
-        Principal principal = principalParser(jsonOrder.get("principal").toString());
+    @RequestMapping(path = "/findProductByName", method = RequestMethod.POST)
+    public ResponseEntity<?> findProductByName(@RequestBody String productRequest) {
 
-        Order order = new Order();
-        order.setDate(new Date());
-        order.setPrincipal(principalRepository.findByNip(principal.getNip()));
+        JSONObject jsonObject = new JSONObject(productRequest);
 
-        List<UsedProduct> productList = usedProductParser(jsonOrder.getJSONArray("product").toString());
-        if (chcekState(productList) == false) {
-            JSONObject jsonObject = new JSONObject();
+        List<Product> productList = productRepository.findByName(jsonObject.get("name").toString());
 
-            jsonObject.put("status", "failed");
-            return ResponseEntity.ok(jsonObject.toString());
+
+        return getProductsResponseEntity(productList);
+    }
+
+    @RequestMapping(path = "/findProductByProducer", method = RequestMethod.POST)
+    public ResponseEntity<?> findProductByProducer(@RequestBody String productRequest) {
+
+        JSONObject jsonObject = new JSONObject(productRequest);
+
+        List<Product> productList = productRepository.findByProducer(jsonObject.get("producer").toString());
+
+
+        return getProductsResponseEntity(productList);
+    }
+
+    @RequestMapping(path = "/findProductByBarcode", method = RequestMethod.POST)
+    public ResponseEntity<?> findProductByBarcode(@RequestBody String productRequest) {
+
+        JSONObject jsonObject = new JSONObject(productRequest);
+
+        Product product = productRepository.findByBarCode(jsonObject.get("barcode").toString());
+
+        JSONObject tmpJsonObejct = new JSONObject();
+        if (product != null) {
+
+
+            createJsonResponse(product, tmpJsonObejct);
+
+
         } else {
-
-
-            order.setPrice(countTheAmountOfTheOrder(productList));
-            order.setUsedProductList(productList);
-
-            return sendGoodCreateOrderResponse(order, productList);
+            tmpJsonObejct.put("error", "noProductInWarehouse");
         }
+        return ResponseEntity.ok(tmpJsonObejct.toString());
     }
 
-    private ResponseEntity<?> sendGoodCreateOrderResponse(Order order, List<UsedProduct> productList) {
-        usedProductRepository.saveAll(productList);
-        orderRepository.save(order);
+    private ResponseEntity<?> getProductsResponseEntity(List<Product> productList) {
+        JSONArray jsonArrayToResponse = new JSONArray();
+        if (productList.size() != 0) {
+            for (Product p : productList) {
+                JSONObject tmpJsonObejct = new JSONObject();
+                createJsonResponse(p, tmpJsonObejct);
+                jsonArrayToResponse.put(tmpJsonObejct);
+            }
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", order.getId());
-        jsonObject.put("status", "success");
-        return ResponseEntity.ok(jsonObject.toString());
-    }
-
-
-    @RequestMapping(path = "/editOrder", method = RequestMethod.POST)
-    public ResponseEntity<?> editOrder(@RequestBody String orderRequest) {
-
-        JSONObject jsonOrder = new JSONObject(orderRequest);
-        //  System.out.println(jsonOrder.get("order"));
-
-        Order order = orderRepository.getOne(orderParser(jsonOrder.get("order").toString()).getId());
-        //System.out.println(order.getId());
-        List<UsedProduct> productList = usedProductParser(jsonOrder.getJSONArray("product").toString());
-
-        if (chcekEditOrder(order, productList) == true) {
-
-
-            //usedProductRepository.deleteAll(order.getUsedProductList());
-
-            List<UsedProduct>usedProductListToDelete=order.getUsedProductList();
-            order.setUsedProductList(null);
-            usedProductRepository.deleteAll(usedProductListToDelete);
-            order.setUsedProductList(productList);
-            order.setPrice(countTheAmountOfTheOrder(productList));
-            return sendGoodCreateOrderResponse(order, productList);
         } else {
-            JSONObject jsonObject = new JSONObject();
-
-            jsonObject.put("status", "failed");
-            return ResponseEntity.ok(jsonObject.toString());
+            jsonArrayToResponse.put(new JSONObject().put("error", "noProductInWarehouse"));
         }
+        return ResponseEntity.ok(jsonArrayToResponse.toString());
     }
 
-    private boolean chcekEditOrder(Order order, List<UsedProduct> productList) {
-        for (UsedProduct olditem : order.getUsedProductList()) {
 
-            for (UsedProduct newitem : productList) {
+    private void createJsonResponse(Product product, JSONObject tmpJsonObejct) {
+        int logicAmount = product.getLogicState();
+        tmpJsonObejct.put("logicState", logicAmount);
 
-                if (newitem.getIdproduct() == olditem.getIdproduct()) {
-
-
-                    List<UsedProduct> usedProductList = new ArrayList<>();
-                    usedProductList.add(newitem);
-                    System.out.println("jestem tutaj ");
-                    if (newitem.getQuanitity() == olditem.getQuanitity()) {
-                    } else if (chcekState(usedProductList) == false) {
-                        return false;
-
-                    }
-                }
-            }
-
-        }
-        return true;
+        int phsycialState = countPhyscialState(product.getLocation());
+        tmpJsonObejct.put("physicalSate", phsycialState);
+        tmpJsonObejct.put("name", product.getName());
+        tmpJsonObejct.put("location", product.getLogicState());
+        tmpJsonObejct.put("barcode", product.getBarCode());
+        tmpJsonObejct.put("exprDate", product.getExprDate());
+        tmpJsonObejct.put("producer", product.getProducer());
+        tmpJsonObejct.put("id", product.getId());
+        tmpJsonObejct.put("price", product.getPrice());
     }
 
-    private double countTheAmountOfTheOrder(List<UsedProduct> productList) {
-        double price = 0;
-        for (UsedProduct p : productList) {
-            Product product = productRepository.getOne(p.getIdproduct());
-            if (product != null) {
-                price += product.getPrice() * p.getQuanitity();
-            }
-        }
-        price += price * 0.23;
-        return price;
-    }
 
-    private boolean chcekState(List<UsedProduct> usedProducts) {
-
-
-        for (UsedProduct p : usedProducts) {
-            int requestAmount = 0;
-            requestAmount = p.getQuanitity();
-            Product product = productRepository.getOne(p.getIdproduct());
-            int magazineAmount = 0;
-            for (Location location : product.getLocation()) {
-                magazineAmount += location.getAmountOfProduct();
-            }
-            if (requestAmount > magazineAmount) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

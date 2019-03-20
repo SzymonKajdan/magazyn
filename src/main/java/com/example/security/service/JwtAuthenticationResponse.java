@@ -1,5 +1,7 @@
 package com.example.security.service;
 
+import com.example.security.model.User;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -11,9 +13,12 @@ public class JwtAuthenticationResponse implements Serializable {
 
     private final Date expirationDate;
 
-    public JwtAuthenticationResponse(String token, Date expirationDate) {
+    private final User user ;
+
+    public JwtAuthenticationResponse(String token, Date expirationDate,User user) {
         this.token = token;
         this.expirationDate = expirationDate;
+        this.user = user;
     }
 
     public String getToken() {
@@ -22,5 +27,9 @@ public class JwtAuthenticationResponse implements Serializable {
 
     public Date getExpirationDate() {
         return expirationDate;
+    }
+
+    public User getUser() {
+        return user;
     }
 }
