@@ -21,5 +21,15 @@ public class OrderParser {
 
     }
 
+    public static  JSONObject orderToJson(Order order){
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("id",order.getId());
+        jsonObject.put("user",order.getUser());
+        jsonObject.put("principal",order.getPrincipal());
+        jsonObject.put("products",order.getUsedProductList());
+        return  jsonObject;
+
+    }
+
 
 }

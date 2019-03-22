@@ -16,9 +16,12 @@ public class UsedProduct {
     @NotNull
     private int quanitity;
 
-    @Column(name ="IDPRODUCT")
+    @Column(name = "IDPRODUCT")
     @NotNull
     private Long idproduct;
+
+    @Column(name = "ISPICKED")
+    private boolean isPicked;
 
     public Long getId() {
         return id;
@@ -42,5 +45,13 @@ public class UsedProduct {
 
     public void setIdproduct(Long idproduct) {
         this.idproduct = idproduct;
+    }
+
+    public boolean isPicked() {
+        return isPicked;
+    }
+
+    public void setPicked(boolean picked) {
+        isPicked = picked;
     }
 }
