@@ -17,8 +17,6 @@ public class Order {
     @SequenceGenerator(name = "order_seq", sequenceName = "order_seq", allocationSize = 1)
     private Long id;
 
-    @OneToMany
-    private List<Product> product;
 
     @OneToOne
     private User user;
@@ -26,16 +24,20 @@ public class Order {
     @OneToOne
     private Principal principal;
 
+    @OneToMany
+    private List<UsedProduct> usedProductList;
+
     @NotNull
     private Double price;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @NotNull
     private Date date;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @NotNull
     private Date endDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date departureDate;
 
     public Long getId() {
         return id;
@@ -85,11 +87,20 @@ public class Order {
         this.endDate = endDate;
     }
 
-    public List<Product> getProduct() {
-        return product;
+
+    public Date getDepartureDate() {
+        return departureDate;
     }
 
-    public void setProduct(List<Product> product) {
-        this.product = product;
+    public void setDepartureDate(Date departureDate) {
+        this.departureDate = departureDate;
+    }
+
+    public List<UsedProduct> getUsedProductList() {
+        return usedProductList;
+    }
+
+    public void setUsedProductList(List<UsedProduct> usedProductList) {
+        this.usedProductList = usedProductList;
     }
 }

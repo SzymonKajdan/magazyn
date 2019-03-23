@@ -13,9 +13,9 @@ public class JwtAuthenticationResponse implements Serializable {
 
     private final Date expirationDate;
 
-    private final User user;
+    private final User user ;
 
-    public JwtAuthenticationResponse(String token, Date expirationDate, User user) {
+    public JwtAuthenticationResponse(String token, Date expirationDate,User user) {
         this.token = token;
         this.expirationDate = expirationDate;
         this.user = user;

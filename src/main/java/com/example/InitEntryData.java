@@ -13,25 +13,28 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
+import java.util.*;
 
 @Component
 public class InitEntryData implements ApplicationListener<ContextRefreshedEvent> {
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private AuthorityRepository authorityRepository;
-    @Autowired private LocationRepository locationRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private PasswordEncoder encoder;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AuthorityRepository authorityRepository;
+    @Autowired
+    private LocationRepository locationRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private PasswordEncoder encoder;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 
-        if(authorityRepository.findByName(AuthorityName.ROLE_MANAGER)==null) {
+        if (authorityRepository.findByName(AuthorityName.ROLE_MANAGER) == null) {
             Authority adminRole = new Authority();
             adminRole.setName(AuthorityName.ROLE_MANAGER);
 
@@ -79,6 +82,15 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product1.setName("produkt1");
             product1.setPrice(100.0);
             product1.setExprDate(new Date());
+            product1.setPrice(100.0);
+            product1.setExprDate(new Date(1003000));
+            product1.setQuantityOnThePalette(150);
+            product1.setName("maka");
+
+
+            for (Location l : product1.getLocations()) {
+                product1.setLogicState((int) (product1.getLogicState() + l.getAmountOfProduct()));
+            }
 
             Date date1 = new Date(1000000);
 
@@ -87,22 +99,31 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order1.setEndDate(new Date());
             order1.setPrice(100.0);
             order1.setUser(user);
-            order1.setProduct(new ArrayList<Product>(Arrays.asList(product1)));
+
 
             locationRepository.save(location1);
             productRepository.save(product1);
             orderRepository.save(order1);
 
+
             Location location2 = new Location();
             location2.setAmountOfProduct(120);
             location2.setBarCodeLocation("xddd2");
 
+
+            Location location4 = new Location();
+            location4.setBarCodeLocation("xddd4");
+            location4.setAmountOfProduct(200);
+
             Product product2 = new Product();
             product2.setBarCode("xdddd2");
-            product2.setLocations(new ArrayList<Location>(Arrays.asList(location2)));
-            product2.setName("produkt2");
+            product2.setLocations(new ArrayList<Location>(Arrays.asList(location2, location4)));
             product2.setPrice(200.0);
-            product2.setExprDate(new Date());
+            product2.setExprDate(new Date(1003000));
+            product2.setQuantityOnThePalette(200);
+            for (Location l : product2.getLocations()) {
+                product2.setLogicState((int) (product2.getLogicState() + l.getAmountOfProduct()));
+            }
 
             Date date2 = new Date(1020000);
 
@@ -111,9 +132,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order2.setEndDate(new Date());
             order2.setPrice(200.0);
             order2.setUser(user);
-            order2.setProduct(new ArrayList<Product>(Arrays.asList(product2)));
 
             locationRepository.save(location2);
+            locationRepository.save(location4);
             productRepository.save(product2);
             orderRepository.save(order2);
 
@@ -124,9 +145,16 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             Product product3 = new Product();
             product3.setBarCode("xdddd3");
             product3.setLocations(new ArrayList<Location>(Arrays.asList(location3)));
-            product3.setName("produkt3");
             product3.setPrice(200.0);
             product3.setExprDate(new Date());
+
+            product3.setQuantityOnThePalette(90);
+            product3.setExprDate(new Date());
+            product3.setName("maka");
+
+            for (Location l : product3.getLocations()) {
+                product3.setLogicState((int) (product3.getLogicState() + l.getAmountOfProduct()));
+            }
 
             Date date3 = new Date(1003000);
 
@@ -135,11 +163,11 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             order3.setEndDate(new Date());
             order3.setPrice(200.0);
             order3.setUser(user);
-            order3.setProduct(new ArrayList<Product>(Arrays.asList(product3)));
 
             locationRepository.save(location3);
             productRepository.save(product3);
             orderRepository.save(order3);
+
         }
     }
 }

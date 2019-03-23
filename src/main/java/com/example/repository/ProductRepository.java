@@ -14,7 +14,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Product findByBarCode(String barcode);
 
+    Product getProductById(Long id );
+
     Product findProductByBarCode(String barcode);
 
     Boolean existsByBarCode(String barcode);
+
+    List<Product>findByName(String name);
+
+    List<Product>findByProducer(String producer);
 }

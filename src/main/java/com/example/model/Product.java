@@ -78,21 +78,20 @@ public class Product {
         this.price = price;
     }
 
-    public Date getExprDate() {
-        return exprDate;
-    }
-
-    public void setExprDate(Date exprDate) {
-        this.exprDate = exprDate;
-    }
-
-
     public int getQuantityOnThePalette() {
         return quantityOnThePalette;
     }
 
     public void setQuantityOnThePalette(int quantityOnThePalette) {
         this.quantityOnThePalette = quantityOnThePalette;
+    }
+
+    public Date getExprDate() {
+        return exprDate;
+    }
+
+    public void setExprDate(Date exprDate) {
+        this.exprDate = exprDate;
     }
 
     public String getProducer() {
