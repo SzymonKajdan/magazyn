@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(User user) {
+    public boolean delete(User user) {
 
 //        jdbc.execute("DELETE FROM USER_ROLE WHERE USER_ID ="+user.getId());
 //        jdbc.execute("DELETE FROM USER_MA_PASSES WHERE USER_ID ="+user.getId());
@@ -55,15 +55,17 @@ public class UserServiceImpl implements UserService {
             long id = user.getId();
             if(userRepository.existsById(id)) {
                 userRepository.deleteById(id);
+                return true;
             }
         }
         if(user.getUsername()!=null){
             if(userRepository.existsByUsername(user.getUsername())) {
                 userRepository.deleteById(userRepository.findByUsername(user.getUsername()).getId());
+                return true;
             }
         }
 
-        userRepository.delete(user);
+        return false;
     }
 
     @Override

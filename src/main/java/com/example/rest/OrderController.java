@@ -6,6 +6,7 @@ import com.example.security.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.example.parsers.LocationParser.locationParser;
 import static com.example.parsers.OrderParser.orderParser;
@@ -41,6 +40,47 @@ public class OrderController {
     UsedProductRepository usedProductRepository;
     @Autowired
     LocationRepository locationRepository;
+
+    @RequestMapping(path = "/orders", method = RequestMethod.GET)
+    public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
+        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
+    }
+
+    @RequestMapping(path = "/order/find", method = RequestMethod.POST)
+    public ResponseEntity<?> getOrder(@RequestBody String request) {
+
+        JSONObject jsonOrder = new JSONObject(request);
+
+
+
+        //return ResponseEntity.ok(orderToJson(orderRepository.getOne(jsonOrder.getLong("id"))).toString());
+
+        Order order = orderRepository.getOne(jsonOrder.getLong("id"));
+
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("id",order.getId());
+        jsonObject.put("user",order.getUser());
+        jsonObject.put("principal",order.getPrincipal());
+        //jsonObject.put("products",order.getUsedProductList());
+
+        JSONArray products = new JSONArray();
+
+        order.getUsedProductList().forEach((us)->{
+            Map<String,Object> product = new HashMap<>();
+            Product p = productRepository.getProductById(us.getIdproduct());
+            //product.put("product",us);
+            product.put("palletes",((double)us.getQuanitity()/(double)p.getQuantityOnThePalette()));
+            product.put("productID",us.getIdproduct());
+            product.put("usedProductID",us.getId());
+            product.put("quantity",us.getQuanitity());
+            product.put("isPicked",us.isPicked());
+            products.put(product);
+        });
+
+        jsonObject.put("products",products);
+
+        return ResponseEntity.ok(jsonObject.toString());
+    }
 
     @RequestMapping(path = "/createOrder", method = RequestMethod.POST)
     public ResponseEntity<?> createOrder(@RequestBody String orderRequest) {
