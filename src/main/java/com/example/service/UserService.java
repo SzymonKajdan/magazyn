@@ -6,7 +6,7 @@ public interface UserService {
 
     void saveWorker(User user);
     void saveManager(User user);
-    boolean delete(User user);
+    void delete(User user);
     String generatePassword();
     String ecryptPassword(String str);
 }

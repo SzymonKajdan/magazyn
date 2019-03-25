@@ -25,16 +25,16 @@ public class ProduktController {
         return ResponseEntity.ok(productRepository.findAll());
     }
 
-    @RequestMapping(path = "/findAllByOrderByName", method = RequestMethod.GET)
-    public ResponseEntity<?> getAllProductsOrderByName() {
-        return ResponseEntity.ok(productRepository.findAllByOrderByName());
-    }
+//    @RequestMapping(path = "/findAllByOrderByName", method = RequestMethod.GET)
+//    public ResponseEntity<?> getAllProductsOrderByName() {
+//        return ResponseEntity.ok(productRepository.findAllByOrderByName());
+//    }
 
     @RequestMapping(path = "/add", method = RequestMethod.PUT)
     public ResponseEntity<?> addProduct(@RequestBody Product p) {
 
         if(!productRepository.existsByBarCode(p.getBarCode())) {
-            //System.out.println("TUTAJ !!!! ----> "+p.getLocations().get(0).getAmountOfProduct());
+
             productRepository.save(p);
             return ResponseEntity.ok("Success");
         }
@@ -77,4 +77,5 @@ public class ProduktController {
         }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
+
 }

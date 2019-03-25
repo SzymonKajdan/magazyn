@@ -38,38 +38,38 @@ public class MainRestService {
         return ResponseEntity.ok(userRepository.findAll());
     }
 
-//    @RequestMapping(path = "/orders", method = RequestMethod.GET)
-//    public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
-//        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
-//    }
+    @RequestMapping(path = "/orders", method = RequestMethod.GET)
+    public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
+        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
+    }
+
+    @RequestMapping(path = "/orders2", method = RequestMethod.GET)
+    public ResponseEntity<?> getAllOrdersOrderByDateDsc() {
+        return ResponseEntity.ok(orderRepository.findAllByOrderByDateDsc());
+    }
+
+
+//    @RequestMapping(path = "/findProductByName", method = RequestMethod.POST)
+//    public ResponseEntity<?> findProductByName(@RequestBody String productRequest) {
 //
-//    @RequestMapping(path = "/orders2", method = RequestMethod.GET)
-//    public ResponseEntity<?> getAllOrdersOrderByDateDsc() {
-//        return ResponseEntity.ok(orderRepository.findAllByOrderByDateDsc());
+//        JSONObject jsonObject = new JSONObject(productRequest);
+//
+//        List<Product> productList = productRepository.findByName(jsonObject.get("name").toString());
+//
+//
+//        return getProductsResponseEntity(productList);
 //    }
 
-
-    @RequestMapping(path = "/findProductByName", method = RequestMethod.POST)
-    public ResponseEntity<?> findProductByName(@RequestBody String productRequest) {
-
-        JSONObject jsonObject = new JSONObject(productRequest);
-
-        List<Product> productList = productRepository.findByName(jsonObject.get("name").toString());
-
-
-        return getProductsResponseEntity(productList);
-    }
-
-    @RequestMapping(path = "/findProductByProducer", method = RequestMethod.POST)
-    public ResponseEntity<?> findProductByProducer(@RequestBody String productRequest) {
-
-        JSONObject jsonObject = new JSONObject(productRequest);
-
-        List<Product> productList = productRepository.findByProducer(jsonObject.get("producer").toString());
-
-
-        return getProductsResponseEntity(productList);
-    }
+//    @RequestMapping(path = "/findProductByProducer", method = RequestMethod.POST)
+//    public ResponseEntity<?> findProductByProducer(@RequestBody String productRequest) {
+//
+//        JSONObject jsonObject = new JSONObject(productRequest);
+//
+//        List<Product> productList = productRepository.findByProducer(jsonObject.get("producer").toString());
+//
+//
+//        return getProductsResponseEntity(productList);
+//    }
 
     @RequestMapping(path = "/findProductByBarcode", method = RequestMethod.POST)
     public ResponseEntity<?> findProductByBarcode(@RequestBody String productRequest) {
@@ -108,18 +108,17 @@ public class MainRestService {
 
 
     private void createJsonResponse(Product product, JSONObject tmpJsonObejct) {
-        int logicAmount = product.getState();
-        tmpJsonObejct.put("logicState", logicAmount);
+
 
         int phsycialState = countPhyscialState(product.getLocations());
         tmpJsonObejct.put("physicalSate", phsycialState);
-        tmpJsonObejct.put("name", product.getName());
+        tmpJsonObejct.put("name", product.getStaticProduct().getName());
         tmpJsonObejct.put("location", product.getState());
         tmpJsonObejct.put("barcode", product.getBarCode());
         tmpJsonObejct.put("exprDate", product.getExprDate());
-        tmpJsonObejct.put("producer", product.getProducer());
+        tmpJsonObejct.put("producer", product.getStaticProduct().getProducer());
         tmpJsonObejct.put("id", product.getId());
-        tmpJsonObejct.put("price", product.getPrice());
+        tmpJsonObejct.put("price", product.getStaticProduct().getPrice());
     }
 
 

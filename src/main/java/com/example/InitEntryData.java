@@ -1,8 +1,6 @@
 package com.example;
 
-import com.example.model.Location;
-import com.example.model.Order;
-import com.example.model.Product;
+import com.example.model.*;
 import com.example.repository.*;
 import com.example.security.model.Authority;
 import com.example.security.model.AuthorityName;
@@ -28,6 +26,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
     private ProductRepository productRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private StaticProductRepository staticProductRepository;
+    @Autowired
+    private StaticLocationRepository staticLocationRepository;
     @Autowired
     private PasswordEncoder encoder;
 
@@ -72,88 +74,139 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             //-----------------------------//
 
-            Location location1 = new Location();
-            location1.setBarCodeLocation("xdddd");
+            //--------------------------
+            // STATIC LOCATIONS
+            //--------------------------
 
-            Product product1 = new Product();
-            product1.setBarCode("xdddd");
-            product1.setLocations(new ArrayList<Location>(Arrays.asList(location1)));
-            product1.setName("produkt1");
-            product1.setPrice(100.0);
-            product1.setExprDate(new Date());
-            product1.setPrice(100.0);
-            product1.setExprDate(new Date(1003000));
-            product1.setQuantityOnThePalette(150);
-            product1.setName("maka");
-            product1.setState(10000);
+            StaticLocation sl1 = new StaticLocation();
+            sl1.setBarCodeLocation("0001");
 
-            Date date1 = new Date(1000000);
+            StaticLocation sl2 = new StaticLocation();
+            sl2.setBarCodeLocation("0002");
 
-            Order order1 = new Order();
-            order1.setDate(date1);
-            order1.setEndDate(new Date());
-            order1.setPrice(100.0);
-            order1.setUser(user);
+            StaticLocation sl3 = new StaticLocation();
+            sl3.setBarCodeLocation("0003");
 
+            staticLocationRepository.save(sl1);
+            staticLocationRepository.save(sl2);
+            staticLocationRepository.save(sl3);
 
-            locationRepository.save(location1);
-            productRepository.save(product1);
-            orderRepository.save(order1);
+            //--------------------------
+            // STATIC PRODUCTS
+            //--------------------------
 
+            StaticProduct sp1 = new StaticProduct();
+            sp1.setName("Mąka");
+            sp1.setCategory("Żywność");
+            sp1.setProducer("Złote Pola");
+            sp1.setPrice(200.0);
+            sp1.setQuantityOnThePalette(100);
+            sp1.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1)));
 
-            Location location2 = new Location();
-            location2.setBarCodeLocation("xddd2");
+            StaticProduct sp2 = new StaticProduct();
+            sp2.setName("Chleb");
+            sp2.setCategory("Żywność");
+            sp2.setProducer("Piekarnia");
+            sp2.setPrice(210.0);
+            sp2.setQuantityOnThePalette(200);
+            sp2.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl2)));
 
-            Location location4 = new Location();
-            location4.setBarCodeLocation("xddd4");
+            StaticProduct sp3 = new StaticProduct();
+            sp3.setName("Makaron");
+            sp3.setCategory("Żywność");
+            sp3.setProducer("Lubella");
+            sp3.setPrice(90.0);
+            sp3.setQuantityOnThePalette(20);
+            sp3.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1,sl2,sl3)));
 
-            Product product2 = new Product();
-            product2.setBarCode("xdddd2");
-            product2.setLocations(new ArrayList<Location>(Arrays.asList(location2, location4)));
-            product2.setPrice(200.0);
-            product2.setExprDate(new Date(1003000));
-            product2.setQuantityOnThePalette(200);
-            product2.setState(10000);
+            staticProductRepository.save(sp1);
+            staticProductRepository.save(sp2);
+            staticProductRepository.save(sp3);
 
-            Date date2 = new Date(1020000);
+            //---------------------------
+            // LOCATIONS
+            //---------------------------
 
-            Order order2 = new Order();
-            order2.setDate(date2);
-            order2.setEndDate(new Date());
-            order2.setPrice(200.0);
-            order2.setUser(user);
+            Location l1 = new Location();
+            l1.setBarCodeLocation(sl1.getBarCodeLocation());
 
-            locationRepository.save(location2);
-            locationRepository.save(location4);
-            productRepository.save(product2);
-            orderRepository.save(order2);
+            Location l2 = new Location();
+            l2.setBarCodeLocation(sl2.getBarCodeLocation());
 
-            Location location3 = new Location();
-            location3.setBarCodeLocation("xddd3");
+            Location l3 = new Location();
+            l3.setBarCodeLocation(sl3.getBarCodeLocation());
 
-            Product product3 = new Product();
-            product3.setBarCode("xdddd3");
-            product3.setLocations(new ArrayList<Location>(Arrays.asList(location3)));
-            product3.setPrice(200.0);
-            product3.setExprDate(new Date());
+            locationRepository.save(l1);
+            locationRepository.save(l2);
+            locationRepository.save(l3);
 
-            product3.setQuantityOnThePalette(90);
-            product3.setExprDate(new Date());
-            product3.setName("maka");
-            product3.setState(10000);
+            //---------------------------
+            // PRODUCTS
+            //---------------------------
 
-            Date date3 = new Date(1003000);
+            Product p1 = new Product();
+            p1.setStaticProduct(sp1);
+            p1.setBarCode("000001");
+            //p1.setExprDate(new Date("2019-11-02"));
+            p1.setExprDate(new Date());
+            p1.setState(1000);
+            p1.setLocations(new ArrayList<Location>(Arrays.asList(l1)));
 
-            Order order3 = new Order();
-            order3.setDate(date3);
-            order3.setEndDate(new Date());
-            order3.setPrice(200.0);
-            order3.setUser(user);
+            Product p11 = new Product();
+            p11.setStaticProduct(sp1);
+            p11.setBarCode("000001");
+            //p1.setExprDate(new Date("2020-02-22"));
+            p11.setExprDate(new Date());
+            p11.setState(100);
+            p11.setLocations(new ArrayList<Location>(Arrays.asList(l1)));
 
-            locationRepository.save(location3);
-            productRepository.save(product3);
-            orderRepository.save(order3);
+            Product p2 = new Product();
+            p2.setStaticProduct(sp2);
+            p2.setBarCode("000002");
+            //p2.setExprDate(new Date("2020-02-23"));
+            p2.setExprDate(new Date());
+            p2.setState(2000);
+            p2.setLocations(new ArrayList<Location>(Arrays.asList(l2)));
+
+            Product p3 = new Product();
+            p3.setStaticProduct(sp3);
+            p3.setBarCode("000003");
+            //p3.setExprDate(new Date("2021-02-22"));
+            p3.setExprDate(new Date());
+            p3.setState(3000);
+            p3.setLocations(new ArrayList<Location>(Arrays.asList(l1,l2,l3)));
+
+            productRepository.save(p1);
+            productRepository.save(p11);
+            productRepository.save(p2);
+            productRepository.save(p3);
+
+            //---------------------------
+            // PRINCIPAL
+            //---------------------------
+
+            Principal pr1 = new Principal();
+            pr1.setAddress("Ulica 1/10");
+            pr1.setCompanyName("Firma1");
+            pr1.setNip("nip");
+            pr1.setPhoneNo("111111111");
+            pr1.setZipCode("00-000");
+
+            //---------------------------
+            // ORDER
+            //---------------------------
+
+//            UsedProduct up1 = new UsedProduct();
+//            up1.setIdproduct(sp1);
+//
+//            Order o1 = new Order();
+//            o1.setPrincipal(pr1);
+//            o1.setDate(new Date());
+//            o1.setDepartureDate(new Date());
+//            o1.setEndDate(new Date());
+
 
         }
+
     }
 }

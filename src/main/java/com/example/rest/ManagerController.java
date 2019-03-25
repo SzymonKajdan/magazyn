@@ -66,9 +66,9 @@ public class ManagerController {
     @RequestMapping(path = "/deleteWorker", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteWorker(@RequestBody User u) {
 
-        if(userService.delete(u)) return ResponseEntity.ok("SUCCESS");
+        userService.delete(u);
 
-        return ResponseEntity.ok("FAIL");
+        return ResponseEntity.ok("SUCCESS");
     }
 
     @RequestMapping(path = "/workersList", method = RequestMethod.GET)

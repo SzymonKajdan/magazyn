@@ -1,5 +1,7 @@
 package com.example.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.json.JSONPropertyIgnore;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
@@ -18,32 +20,22 @@ public class Product {
     @SequenceGenerator(name = "product_seq", sequenceName = "product_seq", allocationSize = 1)
     private Long id;
 
-    @Column(name = "BARCODE", length = 100, unique = true)
+    @Column(name = "BARCODE", length = 100, unique = false)
     @NotNull
     @Size(min = 4, max = 100)
     private String barCode;
-
-    @ManyToMany
-    //@Nullable
-    private List<Location> locations;
-
-    @Column(name = "PRICE")
-    @NotNull
-    private Double price;
-
-    @Column(name = "quantityOnThePalette")
-    @NotNull
-    private int quantityOnThePalette;
 
     @Temporal(TemporalType.TIMESTAMP)
     @NotNull
     private Date exprDate;
 
-    private String producer;
-
     private int state;
 
-    private  String name;
+    @ManyToMany
+    private List<Location> locations;
+
+    @ManyToOne
+    private StaticProduct staticProduct;
 
     public Long getId() {
         return id;
@@ -61,31 +53,6 @@ public class Product {
         this.barCode = barCode;
     }
 
-
-    public List<Location> getLocations() {
-        return locations;
-    }
-
-    public void setLocations(List<Location> locations) {
-        this.locations = locations;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public int getQuantityOnThePalette() {
-        return quantityOnThePalette;
-    }
-
-    public void setQuantityOnThePalette(int quantityOnThePalette) {
-        this.quantityOnThePalette = quantityOnThePalette;
-    }
-
     public Date getExprDate() {
         return exprDate;
     }
@@ -94,27 +61,28 @@ public class Product {
         this.exprDate = exprDate;
     }
 
-    public String getProducer() {
-        return producer;
+    @JsonIgnore
+    public List<Location> getLocations() {
+        return locations;
     }
 
-    public void setProducer(String producer) {
-        this.producer = producer;
+    public void setLocations(List<Location> locationList) {
+        this.locations = locationList;
     }
 
     public int getState() {
         return state;
     }
 
-    public void setState(int logicState) {
-        this.state = logicState;
+    public void setState(int state) {
+        this.state = state;
     }
 
-    public String getName() {
-        return name;
+    public StaticProduct getStaticProduct() {
+        return staticProduct;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setStaticProduct(StaticProduct staticProduct) {
+        this.staticProduct = staticProduct;
     }
 }

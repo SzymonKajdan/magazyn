@@ -1,40 +1,33 @@
 package com.example.rest;
 
 import com.example.model.Principal;
-import com.example.repository.OrderRepository;
 import com.example.repository.PrincipalRepository;
-import com.example.repository.UserRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
-@RequestMapping("")
+@RequestMapping("/client")
 public class WorkerController {
 
     @Autowired PrincipalRepository principalRepository;
-    @Autowired OrderRepository orderRepository;
-    @Autowired UserRepository userRepository;
 
-    @RequestMapping(path = "/client/findAll", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipals() {
         return ResponseEntity.ok(principalRepository.findAll());
     }
 
-    @RequestMapping(path = "/client/findAllByOrderByCompanyName", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAllByOrderByCompanyName", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipalsOrderByBrand() {
         return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
     }
 
-    @RequestMapping(path = "/client/add", method = RequestMethod.PUT)
+    @RequestMapping(path = "/add", method = RequestMethod.PUT)
     public ResponseEntity<?> addPrincipal(@RequestBody Principal p) {
 
         if(!principalRepository.existsByNip(p.getNip())) {
@@ -46,7 +39,7 @@ public class WorkerController {
         }
     }
 
-    @RequestMapping(path = "/client/delete", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -68,7 +61,7 @@ public class WorkerController {
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "/client/find", method = RequestMethod.GET)
+    @RequestMapping(path = "/find", method = RequestMethod.GET)
     public ResponseEntity<?> findPrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -79,21 +72,5 @@ public class WorkerController {
             return ResponseEntity.ok(principalRepository.findByNip(json.getString("nip")));
         }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
-    }
-
-    @RequestMapping(path = "/worker/orders/findAll", method = RequestMethod.GET)
-    public ResponseEntity<?> getOrders() {
-
-        String username;
-        try {
-            org.springframework.security.core.userdetails.User currentUser =
-                    (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            username = currentUser.getUsername();
-            return new ResponseEntity<>(orderRepository.findAllByUser(userRepository.findByUsername(username)),HttpStatus.OK);
-
-        } catch (ClassCastException e) {
-            username = "anonymousUser";
-            return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
-        }
     }
 }

@@ -11,4 +11,5 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     Location findByBarCodeLocation(String barCodeLocation);
 
+
 }

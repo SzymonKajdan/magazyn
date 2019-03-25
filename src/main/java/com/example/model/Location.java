@@ -21,12 +21,10 @@ public class Location {
     @Size(min = 4, max = 100)
     private String barCodeLocation;
 
-    @ManyToMany
-    List<Product> products;
 
-//    @Column(name = "AMOUNTOFPRODUCT")
-//    @NotNull
-//    private int amountOfProduct;
+    @ManyToMany
+    private List<Product> products;
+
 
     public Long getId() {
         return id;
@@ -44,20 +42,12 @@ public class Location {
         this.barCodeLocation = barCodeLocation;
     }
 
-//    public int getAmountOfProduct() {
-//        return amountOfProduct;
-//    }
-//
-//    public void setAmountOfProduct(int amountOfProduct) {
-//        this.amountOfProduct = amountOfProduct;
-//    }
-
 
     public List<Product> getProducts() {
         return products;
     }
 
-    public void setProducts(List<Product> productList) {
-        this.products = productList;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }
