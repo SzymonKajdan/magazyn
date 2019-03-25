@@ -51,35 +51,35 @@ public class OrderController {
 
         JSONObject jsonOrder = new JSONObject(request);
 
+        Long id = jsonOrder.getLong("id");
+        if(orderRepository.existsById(id)) {
+            Order order = orderRepository.getOne(id);
 
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id", order.getId());
+            jsonObject.put("user", order.getUser());
+            jsonObject.put("principal", order.getPrincipal());
+            //jsonObject.put("products",order.getUsedProductList());
 
-        //return ResponseEntity.ok(orderToJson(orderRepository.getOne(jsonOrder.getLong("id"))).toString());
+            JSONArray products = new JSONArray();
 
-        Order order = orderRepository.getOne(jsonOrder.getLong("id"));
+            order.getUsedProductList().forEach((us) -> {
+                Map<String, Object> product = new HashMap<>();
+                Product p = productRepository.getProductById(us.getIdproduct());
+                //product.put("product",us);
+                product.put("palletes", ((double) us.getQuanitity() / (double) p.getQuantityOnThePalette()));
+                product.put("productID", us.getIdproduct());
+                product.put("usedProductID", us.getId());
+                product.put("quantity", us.getQuanitity());
+                product.put("isPicked", us.isPicked());
+                products.put(product);
+            });
 
-        JSONObject jsonObject=new JSONObject();
-        jsonObject.put("id",order.getId());
-        jsonObject.put("user",order.getUser());
-        jsonObject.put("principal",order.getPrincipal());
-        //jsonObject.put("products",order.getUsedProductList());
+            jsonObject.put("products", products);
 
-        JSONArray products = new JSONArray();
-
-        order.getUsedProductList().forEach((us)->{
-            Map<String,Object> product = new HashMap<>();
-            Product p = productRepository.getProductById(us.getIdproduct());
-            //product.put("product",us);
-            product.put("palletes",((double)us.getQuanitity()/(double)p.getQuantityOnThePalette()));
-            product.put("productID",us.getIdproduct());
-            product.put("usedProductID",us.getId());
-            product.put("quantity",us.getQuanitity());
-            product.put("isPicked",us.isPicked());
-            products.put(product);
-        });
-
-        jsonObject.put("products",products);
-
-        return ResponseEntity.ok(jsonObject.toString());
+            return ResponseEntity.ok(jsonObject.toString());
+        }
+        return ResponseEntity.ok("ORDER DOES NOT EXIST");
     }
 
     @RequestMapping(path = "/createOrder", method = RequestMethod.POST)
@@ -175,7 +175,7 @@ public class OrderController {
             System.out.println(checkTheCorrectnessOfTheProducts(usedProductList, order.getUsedProductList()));
             List<Location> locationList = locationParser(orderJson.getJSONArray("location").toString());
 
-            changeAllState(order.getUsedProductList(), locationList);
+            //changeAllState(order.getUsedProductList(), locationList);
             order.setEndDate(new Date());
             orderRepository.save(order);
             // locationRepository.saveAll(locationList);
@@ -219,8 +219,7 @@ public class OrderController {
 
     private void changeState(List<UsedProduct> usedProductsInOrder, List<Location> pickedItems, List<UsedProduct> usedProductsFromRequest) {
         changeStatusOfPick(usedProductsInOrder, usedProductsFromRequest);
-        changeAllState(usedProductsInOrder, pickedItems);
-
+        //changeAllState(usedProductsInOrder, pickedItems);
     }
 
     private void changeStatusOfPick(List<UsedProduct> usedProductsInOrder, List<UsedProduct> usedProductsFromRequest) {
@@ -231,26 +230,6 @@ public class OrderController {
                 }
             }
 
-        }
-    }
-
-
-    private void changeAllState(List<UsedProduct> usedProductList, List<Location> locationList) {
-        List<Product> productList = findProducts(usedProductList);
-        for (Product product : productList) {
-            for (Location locationInWarehouse : product.getLocations()) {
-                for (Location locationFormRequest : locationList) {
-                    if (locationInWarehouse.getBarCodeLocation().equals(locationFormRequest.getBarCodeLocation())) {
-                        locationInWarehouse.setAmountOfProduct(locationInWarehouse.getAmountOfProduct() - locationFormRequest.getAmountOfProduct());
-                    }
-                }
-            }
-
-        }
-        for (Product product : productList) {
-            for (Location locationInWarehouse : product.getLocations()) {
-                System.out.println(locationInWarehouse.getAmountOfProduct() + " " + locationInWarehouse.getId());
-            }
         }
     }
 
@@ -283,7 +262,7 @@ public class OrderController {
     private boolean chcekEditOrder(Order order, List<UsedProduct> productList) {
         for (UsedProduct oldProduct : order.getUsedProductList()) {
             Product p = productRepository.getOne(oldProduct.getIdproduct());
-            p.setLogicState(p.getLogicState() + oldProduct.getQuanitity());
+            p.setState(p.getState() + oldProduct.getQuanitity());
             productRepository.save(p);
         }
         return checkLogicState(productList);
@@ -307,7 +286,7 @@ public class OrderController {
         for (UsedProduct p : productList) {
             int requestAmount = 0;
             requestAmount = p.getQuanitity();
-            int logic = productRepository.getOne(p.getIdproduct()).getLogicState();
+            int logic = productRepository.getOne(p.getIdproduct()).getState();
 
             if (logic >= requestAmount) {
             } else {
@@ -322,7 +301,7 @@ public class OrderController {
                 int requestAmount = 0;
                 requestAmount = p.getQuanitity();
                 Product product = productRepository.getOne(p.getIdproduct());
-                product.setLogicState(product.getLogicState() - p.getQuanitity());
+                product.setState(product.getState() - p.getQuanitity());
                 productRepository.save(product);
 
             }

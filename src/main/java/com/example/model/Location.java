@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 @Table(name = "LOCATION")
@@ -20,9 +21,12 @@ public class Location {
     @Size(min = 4, max = 100)
     private String barCodeLocation;
 
-    @Column(name = "AMOUNTOFPRODUCT")
-    @NotNull
-    private int amountOfProduct;
+    @ManyToMany
+    List<Product> products;
+
+//    @Column(name = "AMOUNTOFPRODUCT")
+//    @NotNull
+//    private int amountOfProduct;
 
     public Long getId() {
         return id;
@@ -40,11 +44,20 @@ public class Location {
         this.barCodeLocation = barCodeLocation;
     }
 
-    public int getAmountOfProduct() {
-        return amountOfProduct;
+//    public int getAmountOfProduct() {
+//        return amountOfProduct;
+//    }
+//
+//    public void setAmountOfProduct(int amountOfProduct) {
+//        this.amountOfProduct = amountOfProduct;
+//    }
+
+
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public void setAmountOfProduct(int amountOfProduct) {
-        this.amountOfProduct = amountOfProduct;
+    public void setProducts(List<Product> productList) {
+        this.products = productList;
     }
 }

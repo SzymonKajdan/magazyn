@@ -108,13 +108,13 @@ public class MainRestService {
 
 
     private void createJsonResponse(Product product, JSONObject tmpJsonObejct) {
-        int logicAmount = product.getLogicState();
+        int logicAmount = product.getState();
         tmpJsonObejct.put("logicState", logicAmount);
 
         int phsycialState = countPhyscialState(product.getLocations());
         tmpJsonObejct.put("physicalSate", phsycialState);
         tmpJsonObejct.put("name", product.getName());
-        tmpJsonObejct.put("location", product.getLogicState());
+        tmpJsonObejct.put("location", product.getState());
         tmpJsonObejct.put("barcode", product.getBarCode());
         tmpJsonObejct.put("exprDate", product.getExprDate());
         tmpJsonObejct.put("producer", product.getProducer());

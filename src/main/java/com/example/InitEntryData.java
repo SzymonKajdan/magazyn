@@ -73,7 +73,6 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             //-----------------------------//
 
             Location location1 = new Location();
-            location1.setAmountOfProduct(100);
             location1.setBarCodeLocation("xdddd");
 
             Product product1 = new Product();
@@ -86,11 +85,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product1.setExprDate(new Date(1003000));
             product1.setQuantityOnThePalette(150);
             product1.setName("maka");
-
-
-            for (Location l : product1.getLocations()) {
-                product1.setLogicState((int) (product1.getLogicState() + l.getAmountOfProduct()));
-            }
+            product1.setState(10000);
 
             Date date1 = new Date(1000000);
 
@@ -107,13 +102,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
 
             Location location2 = new Location();
-            location2.setAmountOfProduct(120);
             location2.setBarCodeLocation("xddd2");
-
 
             Location location4 = new Location();
             location4.setBarCodeLocation("xddd4");
-            location4.setAmountOfProduct(200);
 
             Product product2 = new Product();
             product2.setBarCode("xdddd2");
@@ -121,9 +113,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product2.setPrice(200.0);
             product2.setExprDate(new Date(1003000));
             product2.setQuantityOnThePalette(200);
-            for (Location l : product2.getLocations()) {
-                product2.setLogicState((int) (product2.getLogicState() + l.getAmountOfProduct()));
-            }
+            product2.setState(10000);
 
             Date date2 = new Date(1020000);
 
@@ -139,7 +129,6 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             orderRepository.save(order2);
 
             Location location3 = new Location();
-            location3.setAmountOfProduct(120);
             location3.setBarCodeLocation("xddd3");
 
             Product product3 = new Product();
@@ -151,10 +140,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             product3.setQuantityOnThePalette(90);
             product3.setExprDate(new Date());
             product3.setName("maka");
-
-            for (Location l : product3.getLocations()) {
-                product3.setLogicState((int) (product3.getLogicState() + l.getAmountOfProduct()));
-            }
+            product3.setState(10000);
 
             Date date3 = new Date(1003000);
 

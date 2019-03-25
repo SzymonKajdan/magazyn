@@ -8,7 +8,7 @@ public class CounterPhysicalState {
     public static int countPhyscialState(List<Location> locationList){
         int count=0;
         for(Location l:locationList){
-            count+=l.getAmountOfProduct();
+            //count+=l.getAmountOfProduct();
         }
         return count;
     }

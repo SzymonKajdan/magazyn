@@ -23,7 +23,7 @@ public class Product {
     @Size(min = 4, max = 100)
     private String barCode;
 
-    @OneToMany
+    @ManyToMany
     //@Nullable
     private List<Location> locations;
 
@@ -41,7 +41,7 @@ public class Product {
 
     private String producer;
 
-    private int logicState;
+    private int state;
 
     private  String name;
 
@@ -102,12 +102,12 @@ public class Product {
         this.producer = producer;
     }
 
-    public int getLogicState() {
-        return logicState;
+    public int getState() {
+        return state;
     }
 
-    public void setLogicState(int logicState) {
-        this.logicState = logicState;
+    public void setState(int logicState) {
+        this.state = logicState;
     }
 
     public String getName() {
