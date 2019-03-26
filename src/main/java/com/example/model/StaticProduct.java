@@ -34,6 +34,8 @@ public class StaticProduct {
 
     private String category;
 
+    private int logicState;
+
     public Long getId() {
         return id;
     }
@@ -96,5 +98,13 @@ public class StaticProduct {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public int getLogicState() {
+        return logicState;
+    }
+
+    public void setLogicState(int logicState) {
+        this.logicState = logicState;
     }
 }

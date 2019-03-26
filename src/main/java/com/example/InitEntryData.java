@@ -10,7 +10,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import sun.util.calendar.BaseCalendar;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Component
@@ -30,6 +33,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
     private StaticProductRepository staticProductRepository;
     @Autowired
     private StaticLocationRepository staticLocationRepository;
+    @Autowired
+    private PrincipalRepository principalRepository;
+    @Autowired
+    private UsedProductRepository usedProductRepository;
     @Autowired
     private PasswordEncoder encoder;
 
@@ -101,6 +108,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp1.setProducer("Złote Pola");
             sp1.setPrice(200.0);
             sp1.setQuantityOnThePalette(100);
+            sp1.setLogicState(2000);
             sp1.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1)));
 
             StaticProduct sp2 = new StaticProduct();
@@ -109,6 +117,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp2.setProducer("Piekarnia");
             sp2.setPrice(210.0);
             sp2.setQuantityOnThePalette(200);
+            sp2.setLogicState(3000);
             sp2.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl2)));
 
             StaticProduct sp3 = new StaticProduct();
@@ -117,6 +126,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp3.setProducer("Lubella");
             sp3.setPrice(90.0);
             sp3.setQuantityOnThePalette(20);
+            sp3.setLogicState(1000);
             sp3.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1,sl2,sl3)));
 
             staticProductRepository.save(sp1);
@@ -188,24 +198,48 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             Principal pr1 = new Principal();
             pr1.setAddress("Ulica 1/10");
             pr1.setCompanyName("Firma1");
-            pr1.setNip("nip");
+            pr1.setNip("nip00000");
             pr1.setPhoneNo("111111111");
             pr1.setZipCode("00-000");
+
+            principalRepository.save(pr1);
 
             //---------------------------
             // ORDER
             //---------------------------
 
-//            UsedProduct up1 = new UsedProduct();
-//            up1.setIdproduct(sp1);
-//
-//            Order o1 = new Order();
-//            o1.setPrincipal(pr1);
-//            o1.setDate(new Date());
-//            o1.setDepartureDate(new Date());
-//            o1.setEndDate(new Date());
+            UsedProduct up1 = new UsedProduct();
+            up1.setIdproduct(sp1.getId());
+            up1.setPicked(true);
+            up1.setQuanitity(10);
 
+            // ze statica usuwamy z logicstate zeby wiedziec ile zostało niezamowionych produktow
+            sp1.setLogicState(sp1.getLogicState()-10);
 
+            Order o1 = new Order();
+            o1.setPrincipal(pr1);
+            try {
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+                o1.setDate(formatter.parse("2019-05-05"));
+                o1.setDepartureDate(formatter.parse("2019-05-05"));
+                o1.setEndDate(formatter.parse("2019-05-05"));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            o1.setPrice(sp1.getPrice());
+            o1.setUser(user);
+            o1.setUsedProductList(new ArrayList<>(Arrays.asList(up1)));
+
+            usedProductRepository.save(up1);
+            orderRepository.save(o1);
+
+            // kompletowanie zamowienia
+
+            // pracownik pobiera liste produktow i wybiera
+            sp1.getProducts();
+
+            // po tym co wybierze usuwa sie ze stanu produktu
+            p1.setState(p1.getState()-10);
         }
 
     }
