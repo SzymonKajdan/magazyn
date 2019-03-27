@@ -58,7 +58,12 @@ public class OrderController {
 
     @RequestMapping(path = "/findAllOrderByDateDsc", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateDsc() {
-        return ResponseEntity.ok(orderRepository.findAllByOrderByDateDsc());
+        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
+    }
+
+    @RequestMapping(path = "/findNotEndedAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getNotEndedOrdersOrderByDateAsc() {
+        return ResponseEntity.ok(orderRepository.findAllByEndDateOrderByDate(null));
     }
 
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -93,6 +98,15 @@ public class OrderController {
             if(staticProduct.getLogicState()-quantity>0) {
                 staticProduct.setLogicState(staticProduct.getLogicState() - quantity);
                 staticProductArrayList.add(staticProduct);
+            }
+            else
+            {
+                JSONObject jo = new JSONObject();
+
+                jo.put("success",false);
+                jo.put("message","BRAK_ILOSCI_PRODUKTU");
+
+                return ResponseEntity.ok(jo.toString());
             }
         }
 
