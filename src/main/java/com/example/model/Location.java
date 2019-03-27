@@ -22,7 +22,7 @@ public class Location {
     private String barCodeLocation;
 
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "locations", fetch = FetchType.LAZY)
     private List<Product> products;
 
 

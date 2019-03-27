@@ -4,6 +4,7 @@ import com.example.model.Principal;
 import com.example.model.Product;
 import com.example.repository.PrincipalRepository;
 import com.example.repository.ProductRepository;
+import com.example.repository.StaticProductRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,12 @@ public class ProduktController {
     @Autowired
     ProductRepository productRepository;
 
+    @Autowired
+    StaticProductRepository staticProductRepository;
+
     @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<?> getAllProducts() {
-        return ResponseEntity.ok(productRepository.findAll());
+        return ResponseEntity.ok(staticProductRepository.findAll());
     }
 
 //    @RequestMapping(path = "/findAllByOrderByName", method = RequestMethod.GET)

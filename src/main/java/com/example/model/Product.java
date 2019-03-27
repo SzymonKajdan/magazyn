@@ -32,6 +32,10 @@ public class Product {
     private int state;
 
     @ManyToMany
+    @JoinTable(
+            name = "PRODUCT_LOCATION",
+            joinColumns = {@JoinColumn(name = "PRODUCT_ID", referencedColumnName = "ID")},
+            inverseJoinColumns = {@JoinColumn(name = "LOCATION_ID", referencedColumnName = "ID")})
     private List<Location> locations;
 
     @ManyToOne

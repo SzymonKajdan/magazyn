@@ -38,16 +38,6 @@ public class MainRestService {
         return ResponseEntity.ok(userRepository.findAll());
     }
 
-    @RequestMapping(path = "/orders", method = RequestMethod.GET)
-    public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
-        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
-    }
-
-    @RequestMapping(path = "/orders2", method = RequestMethod.GET)
-    public ResponseEntity<?> getAllOrdersOrderByDateDsc() {
-        return ResponseEntity.ok(orderRepository.findAllByOrderByDateDsc());
-    }
-
 
 //    @RequestMapping(path = "/findProductByName", method = RequestMethod.POST)
 //    public ResponseEntity<?> findProductByName(@RequestBody String productRequest) {
