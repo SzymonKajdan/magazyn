@@ -2,15 +2,9 @@ package com.example.rest;
 
 import com.example.model.*;
 import com.example.repository.*;
-import com.example.security.model.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,18 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
-
-import static com.example.parsers.LocationParser.locationParser;
-import static com.example.parsers.OrderParser.orderParser;
-import static com.example.parsers.OrderParser.orderToJson;
-import static com.example.parsers.PrincipalParser.principalParser;
-import static com.example.parsers.UsedProductParser.usedProductParser;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/order")
@@ -87,7 +70,7 @@ public class OrderController {
 
             UsedProduct usedProduct = new UsedProduct();
             StaticProduct staticProduct = staticProductRepository.findById(id).get();
-            usedProduct.setIdproduct(id);
+            usedProduct.setIdStaticProduct(id);
             usedProduct.setQuanitity(quantity);
             usedProduct.setPicked(false);
 
@@ -136,9 +119,9 @@ public class OrderController {
             for(UsedProduct ud: usedProductArrayList){
                 JSONObject usedProductsJson = new JSONObject();
 
-                StaticProduct sp = staticProductRepository.getOne(ud.getIdproduct());
+                StaticProduct sp = staticProductRepository.getOne(ud.getIdStaticProduct());
 
-                usedProductsJson.put("productID",ud.getIdproduct());
+                usedProductsJson.put("productID",ud.getIdStaticProduct());
                 usedProductsJson.put("palletes",(double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette());
                 palletes += (double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette();
 
@@ -185,11 +168,11 @@ public class OrderController {
 
         for(UsedProduct usedProduct: o.getUsedProductList()){
             ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
-            productIdWithQuantity.setId(usedProduct.getIdproduct());
+            productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
             productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
             productIdWithQuantityList.add(productIdWithQuantity);
 
-            productIdWithQuantityMap.put(usedProduct.getIdproduct(),new ProductIdWithQuantity(usedProduct.getIdproduct(),usedProduct.getQuanitity()));
+            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(),new ProductIdWithQuantity(usedProduct.getIdStaticProduct(),usedProduct.getQuanitity()));
 
             usedProduct.setPicked(true);
             usedProductList.add(usedProduct);

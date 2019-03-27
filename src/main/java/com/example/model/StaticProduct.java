@@ -3,16 +3,18 @@ package com.example.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "STATICPRODUCT")
+@Table(name = "STATICPRODUCTLIST")
 public class StaticProduct {
     @Id
     @Column(name = "ID")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "staticproduct_seq")
-    @SequenceGenerator(name = "staticproduct_seq", sequenceName = "staticproduct_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "staticlocation_seq")
+    @SequenceGenerator(name = "staticlocation_seq", sequenceName = "staticlocation_seq", allocationSize = 1)
     private Long id;
+
 
     @Column(name = "PRICE")
     @NotNull
@@ -22,19 +24,24 @@ public class StaticProduct {
     @NotNull
     private int quantityOnThePalette;
 
-    @ManyToMany
-    private List<StaticLocation> staticLocations;
-
-    @OneToMany
-    private List<Product> products;
 
     private String producer;
 
+    @Column(name = "BARCODE", length = 100)
+    @NotNull
+    @Size(min = 4, max = 100)
+    private String barCode;
+
     private String name;
 
-    private String category;
-
     private int logicState;
+
+    private String category;
+    @OneToMany
+    private List<Product> products;
+
+    @ManyToMany
+    private List<StaticLocation> staticLocations;
 
     public Long getId() {
         return id;
@@ -43,6 +50,7 @@ public class StaticProduct {
     public void setId(Long id) {
         this.id = id;
     }
+
 
     public Double getPrice() {
         return price;
@@ -68,6 +76,14 @@ public class StaticProduct {
         this.staticLocations = staticLocations;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     public String getName() {
         return name;
     }
@@ -84,12 +100,20 @@ public class StaticProduct {
         this.producer = producer;
     }
 
-    public String getCategory() {
-        return category;
+    public int getLogicState() {
+        return logicState;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setLogicState(int logicState) {
+        this.logicState = logicState;
+    }
+
+    public String getBarCode() {
+        return barCode;
+    }
+
+    public void setBarCode(String barCode) {
+        this.barCode = barCode;
     }
 
     public List<Product> getProducts() {
@@ -98,13 +122,5 @@ public class StaticProduct {
 
     public void setProducts(List<Product> products) {
         this.products = products;
-    }
-
-    public int getLogicState() {
-        return logicState;
-    }
-
-    public void setLogicState(int logicState) {
-        this.logicState = logicState;
     }
 }

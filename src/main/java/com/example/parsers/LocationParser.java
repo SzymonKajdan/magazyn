@@ -24,4 +24,10 @@ public class LocationParser {
         return locationList;
 
     }
+    public  static  Location locationParserOneLocation(String location){
+
+        Gson g=new Gson();
+        Location l=g.fromJson(location,Location.class);
+        return l;
+    }
 }

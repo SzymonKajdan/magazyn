@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/product")
-public class ProduktController {
+public class ProductController {
 
     @Autowired
     ProductRepository productRepository;
@@ -37,14 +37,9 @@ public class ProduktController {
     @RequestMapping(path = "/add", method = RequestMethod.PUT)
     public ResponseEntity<?> addProduct(@RequestBody Product p) {
 
-        if(!productRepository.existsByBarCode(p.getBarCode())) {
-
             productRepository.save(p);
             return ResponseEntity.ok("Success");
-        }
-        else{
-            return new ResponseEntity<>("PRODUCT_ALREADY_EXISTS", HttpStatus.CONFLICT);
-        }
+
     }
 
     @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
@@ -58,14 +53,6 @@ public class ProduktController {
                 return ResponseEntity.ok("Success");
             }
         }
-        if(!json.isNull("barCode")){
-            String barCode = json.getString("barCode");
-            if(productRepository.existsByBarCode(barCode)) {
-                productRepository.deleteById(productRepository.findByBarCode(barCode).getId());
-                //productRepository.deleteByBarCode(barCode);
-                return ResponseEntity.ok("Success");
-            }
-        }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
@@ -75,9 +62,6 @@ public class ProduktController {
         JSONObject json = new JSONObject(s);
         if(!json.isNull("id")){
             return ResponseEntity.ok(productRepository.findById(json.getLong("id")));
-        }
-        if(!json.isNull("barCode")){
-            return ResponseEntity.ok(productRepository.findByBarCode(json.getString("barCode")));
         }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }

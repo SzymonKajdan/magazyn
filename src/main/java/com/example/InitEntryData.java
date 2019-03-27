@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import sun.util.calendar.BaseCalendar;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -108,8 +107,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp1.setProducer("Złote Pola");
             sp1.setPrice(200.0);
             sp1.setQuantityOnThePalette(100);
-            sp1.setLogicState(2000);
+            sp1.setBarCode("000001");
+            sp1.setLogicState(1100);
             sp1.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1)));
+            sp1.setProducts(new ArrayList<>());
 
             StaticProduct sp2 = new StaticProduct();
             sp2.setName("Chleb");
@@ -117,17 +118,20 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp2.setProducer("Piekarnia");
             sp2.setPrice(210.0);
             sp2.setQuantityOnThePalette(200);
-            sp2.setLogicState(3000);
+            sp2.setLogicState(2000);
             sp2.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl2)));
-
+            sp2.setBarCode("000002");
+            sp2.setProducts(new ArrayList<>());
             StaticProduct sp3 = new StaticProduct();
             sp3.setName("Makaron");
             sp3.setCategory("Żywność");
             sp3.setProducer("Lubella");
             sp3.setPrice(90.0);
             sp3.setQuantityOnThePalette(20);
-            sp3.setLogicState(1000);
+            sp3.setLogicState(3000);
             sp3.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1,sl2,sl3)));
+            sp3.setBarCode("000003");
+            sp3.setProducts(new ArrayList<>());
 
             staticProductRepository.save(sp1);
             staticProductRepository.save(sp2);
@@ -156,7 +160,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product p1 = new Product();
             p1.setStaticProduct(sp1);
-            p1.setBarCode("000001");
+
             //p1.setExprDate(new Date("2019-11-02"));
             p1.setExprDate(new Date());
             p1.setState(1000);
@@ -164,7 +168,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product p11 = new Product();
             p11.setStaticProduct(sp1);
-            p11.setBarCode("000001");
+
             //p1.setExprDate(new Date("2020-02-22"));
             p11.setExprDate(new Date());
             p11.setState(100);
@@ -172,7 +176,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product p2 = new Product();
             p2.setStaticProduct(sp2);
-            p2.setBarCode("000002");
+
             //p2.setExprDate(new Date("2020-02-23"));
             p2.setExprDate(new Date());
             p2.setState(2000);
@@ -180,16 +184,29 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product p3 = new Product();
             p3.setStaticProduct(sp3);
-            p3.setBarCode("000003");
+
             //p3.setExprDate(new Date("2021-02-22"));
             p3.setExprDate(new Date());
             p3.setState(3000);
             p3.setLocations(new ArrayList<Location>(Arrays.asList(l1,l2,l3)));
 
             productRepository.save(p1);
+
             productRepository.save(p11);
+
+            sp1.getProducts().add(p11);
+            sp1.getProducts().add(p1);
+            staticProductRepository.save(sp1);
+
             productRepository.save(p2);
+
+            sp2.getProducts().add(p2);
+            staticProductRepository.save(sp2);
+
+
             productRepository.save(p3);
+            sp3.getProducts().add(p3);
+            staticProductRepository.save(sp3);
 
             //---------------------------
             // PRINCIPAL
@@ -209,7 +226,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             //---------------------------
 
             UsedProduct up1 = new UsedProduct();
-            up1.setIdproduct(sp1.getId());
+            up1.setIdStaticProduct(sp1.getId());
             up1.setPicked(true);
             up1.setQuanitity(10);
 

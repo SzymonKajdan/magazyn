@@ -1,13 +1,8 @@
 package com.example.rest;
 
-import com.example.model.Location;
-import com.example.model.Palette;
-import com.example.model.Product;
-import com.example.model.Supply;
-import com.example.repository.LocationRepository;
-import com.example.repository.PaletteRepository;
-import com.example.repository.ProductRepository;
-import com.example.repository.SupplyRepository;
+import com.example.model.*;
+import com.example.repository.*;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.example.parsers.LocationParser.locationParser;
-import static com.example.parsers.ProductParser.productJSONParser;
-import static com.example.parsers.ProductParser.productParser;
 import static com.example.parsers.SupplyParser.supplyParser;
-import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 public class SupplyController {
@@ -35,51 +29,154 @@ public class SupplyController {
     ProductRepository productRepository;
     @Autowired
     LocationRepository locationRepository;
+    @Autowired
+    StaticProductRepository staticProductRepository;
+    @Autowired
+    StaticLocationRepository staticLocationsRepository;
+    @Autowired
+    UsedProductRepository usedProductRepository;
 
-    @RequestMapping(path = "/supply/getSupply", method = RequestMethod.POST)
-    public ResponseEntity<?> getSupply(@RequestBody String orderRequest) {
-        JSONObject supplyJSON = new JSONObject(orderRequest);
-        Supply supply = supplyParser(supplyJSON.toString());
-        supplyRepository.save(supply);
-        return ResponseEntity.ok(new JSONObject().put("Status", OK));
+
+    //zwraca wszystkie zaopatrzenia wraz z tymi które już były
+    @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET)
+    public ResponseEntity<?> allSupply() {
+        return (ResponseEntity.ok(supplyRepository.findAll()));
+
     }
 
-    @RequestMapping(path = "/supply/spreadingSupply", method = RequestMethod.POST)
-    public ResponseEntity<?> spreadingSupply(@RequestBody String orderRequest) {
-        JSONObject jsonSupply = new JSONObject(orderRequest);
-        Supply supply = supplyRepository.findByBarCodeOfSupply(jsonSupply.get("barCodeOfSupply").toString());
-        if (supply != null) {
-            Palette paletteInSupply = findPallete(supply.getPaletteList(), jsonSupply.getString("barCodeOfPalette"));
-            if (paletteInSupply.getId() != 0) {
-                List<Location> locationList = locationParser(jsonSupply.get("location").toString());
+    //Zwraca Wszytskie aktwyne zaopatrzenia
+    @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET)
+    public ResponseEntity<?> getActiveSupplies() {
+        return ResponseEntity.ok(supplyRepository.findByStatus(false));
+    }
 
-                Product productInWarehosue = productRepository.findByBarCode(productJSONParser(jsonSupply.get("product").toString()).getBarCode());
-                if (productInWarehosue != null) {
+    //Zakoncznie rozkaldania zaopatrzenia
+    @RequestMapping(path = "/Supply/FinishSpreadingGoods", method = RequestMethod.POST)
+    public ResponseEntity<?> finishSpreadingGoods(@RequestBody String supplyRequest) {
 
-                    addProduct(locationList, productInWarehosue);
+        //tworze obiekt na podstwaie otrzymanego jsona -> sqlect po kodzie kreskowym
+        Supply supply = supplyParser(supplyRequest);
+        Supply suppplyToSave = supplyRepository.findByBarCodeOfSupply(supply.getBarCodeOfSupply());
 
+        //Metoda sprawdza czy  paleta zostala oprózniona
+        if (chceckGoods(suppplyToSave.getPalettes())) {
+             suppplyToSave.setStatus(true);
+            supplyRepository.save(suppplyToSave);
+
+            return ResponseEntity.ok(new JSONObject().put("Status", "OK").toString());
+        } else {
+            return ResponseEntity.ok(new JSONObject().put("Status", "ERROR").toString());
+        }
+    }
+
+    private boolean chceckGoods(List<Palette> palettes) {
+        for (Palette p : palettes)
+            for (UsedProduct product : p.getUsedProducts()) {
+                if (product.getQuanitity() != 0) {
+                    return false;
                 }
             }
-
-        }
-
-
-        return ResponseEntity.ok("ok");
+        return true;
     }
 
-    private void addProduct(List<Location> whereProductWasAdded, Product product) {
-        for (Location location:product.getLocations()){
+    //dodowanie nowego zaopatrzenia z storny internetowej
+    @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST)
+    public ResponseEntity<?> addSupply(@RequestBody String supplyRequest) {
 
-        }
+        Supply supply = supplyParser(supplyRequest);
+        saveUsedProduct(supply.getPalettes());
+        supply.setArriveDate(new Date());
+
+        paletteRepository.saveAll(supply.getPalettes());
+        supplyRepository.save(supply);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("Status", "Succes");
+        jsonObject.put("id", supply.getId());
+        return ResponseEntity.ok(jsonObject.toString());
+
     }
 
-    private Palette findPallete(List<Palette> allPalleteInSupply, String barCodeFromReuqest) {
-        Palette p = new Palette();
-        for (Palette palette : allPalleteInSupply) {
-            if (palette.getBarCode().equals(barCodeFromReuqest)) {
-                p = paletteRepository.findByBarCode(barCodeFromReuqest);
+    //Rozkaldanie zaopatrzenia
+    @RequestMapping(path = "/Supply/SpreadingGoods", method = RequestMethod.POST)
+    public ResponseEntity<?> SpreadingGoods(@RequestBody String supplyRequest) {
+
+        JSONObject request = new JSONObject(supplyRequest);
+        String barCode=request.get("barCode").toString();
+
+        Palette paletteInfo = paletteRepository.findByBarCode(barCode);
+
+        JSONArray locationArray=request.getJSONArray("locations");
+        List<Location> location = locationParser(locationArray.toString());
+
+        //dodanie produktu do lokaizacji i zmiana satnu na palecie
+        addProductToStack(location);
+        changeInfo(paletteInfo, location);
+
+        return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
+
+    }
+
+    //zmaina stanu na palecie  bierzemy porudkt z palety  i porudlt z requestu sprawdziamy czy ten ktory zjest z requestu jest w tej lokalizacji
+    private void changeInfo(Palette paletteInfo, List<Location> location) {
+
+        for (UsedProduct productToSave : paletteInfo.getUsedProducts()) {
+            for (Location oneLocation : location) {
+                for (Product productFromRequest : oneLocation.getProducts()) {
+                    System.out.println(productFromRequest.getStaticProduct().getBarCode());
+                    if (productToSave.getBarCodeProduct().equals(productFromRequest.getStaticProduct().getBarCode())) {
+                        System.out.println(productToSave.getBarCodeProduct());
+                        productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
+                        if (productToSave.getQuanitity() == 0) {
+                            productToSave.setPicked(true);
+                            usedProductRepository.save(productToSave);
+                        }
+
+
+                    }
+                }
+
             }
         }
-        return p;
+    }
+
+    private void addProductToStack(List<Location> locationListWithInfo) {
+
+        for (Location oneLocation : locationListWithInfo) {
+            String barCodeLocation=oneLocation.getBarCodeLocation();
+            Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
+
+            for (Product productToAddToStack : oneLocation.getProducts()) {
+
+                String barCode=productToAddToStack.getStaticProduct().getBarCode();
+                StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
+                staticProduct.setLogicState(staticProduct.getLogicState() + productToAddToStack.getState());
+
+                //System.out.println(locationInWareHosue.getBarCodeLocation());
+                productToAddToStack.setStaticProduct(staticProduct);
+                productToAddToStack.setLocations(new ArrayList<>());
+                productToAddToStack.getLocations().add(locationInWareHosue);
+
+                productRepository.save(productToAddToStack);
+
+                staticProduct.getProducts().add(productToAddToStack);
+                staticProductRepository.save(staticProduct);
+
+            }
+        }
+    }
+
+    private void saveUsedProduct(List<Palette> palettes) {
+        for (Palette pallete : palettes) {
+
+            for (UsedProduct product : pallete.getUsedProducts()) {
+                usedProductRepository.save(product);
+
+
+            }
+
+        }
+
     }
 }
+

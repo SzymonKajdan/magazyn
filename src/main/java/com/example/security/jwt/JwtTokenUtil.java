@@ -67,7 +67,7 @@ public class JwtTokenUtil implements Serializable {
     private Boolean ignoreTokenExpiration(String token) {
         // here you specify tokens, for that the expiration is ignored
 
-        if(token.equals("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU1NDMwNTM4MSwiaWF0IjoxNTUzNzAwNTgxfQ.36cblTHyXUwCdCYcY5I4OQEhWG0GdgsMFtpGB9tREYBYb-no3bOHXjMz2iOPRXzHLVTcDgpNGFl_NtGS_490Ow")){
+        if(token.equals("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU1NDMwNDc3NSwiaWF0IjoxNTUzNjk5OTc1fQ.BF-KkcqbUSRGwZ65dfV5jxHLb5XgP064FGQjeN5sLxFefXC_cBJcwZJe969xmBIxwr2Hs0gYkathQH3G9MT7Fg")){
             return true;
         }
 
@@ -117,13 +117,11 @@ public class JwtTokenUtil implements Serializable {
         final String username = getUsernameFromToken(token);
         final Date created = getIssuedAtDateFromToken(token);
         //final Date expiration = getExpirationDateFromToken(token);
-
-        if(ignoreTokenExpiration(token)) return true;
-
         return (
             username.equals(user.getUsername())
                 && !isTokenExpired(token)
                 && !isCreatedBeforeLastPasswordReset(created, user.getLastPasswordResetDate())
+                || ignoreTokenExpiration(token)
         );
     }
 

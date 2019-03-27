@@ -16,12 +16,14 @@ public class UsedProduct {
     @NotNull
     private int quanitity;
 
-    @Column(name = "IDPRODUCT")
-    @NotNull
-    private Long idproduct;
+    @Column(name = "BARCODE")
+
+    private String barCodeProduct;
 
     @Column(name = "ISPICKED")
     private boolean isPicked;
+
+    private Long idStaticProduct;
 
     public Long getId() {
         return id;
@@ -39,13 +41,6 @@ public class UsedProduct {
         this.quanitity = quanitity;
     }
 
-    public Long getIdproduct() {
-        return idproduct;
-    }
-
-    public void setIdproduct(Long idproduct) {
-        this.idproduct = idproduct;
-    }
 
     public boolean isPicked() {
         return isPicked;
@@ -53,5 +48,21 @@ public class UsedProduct {
 
     public void setPicked(boolean picked) {
         isPicked = picked;
+    }
+
+    public String getBarCodeProduct() {
+        return barCodeProduct;
+    }
+
+    public void setBarCodeProduct(String barCodeProduct) {
+        this.barCodeProduct = barCodeProduct;
+    }
+
+    public Long getIdStaticProduct() {
+        return idStaticProduct;
+    }
+
+    public void setIdStaticProduct(Long idStaticProduct) {
+        this.idStaticProduct = idStaticProduct;
     }
 }

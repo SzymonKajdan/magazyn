@@ -15,7 +15,7 @@ public class Palette {
     @Column(name = "BARCODE")
     private String barCode;
 
-    @OneToMany
+    @ManyToMany
     private List<UsedProduct> usedProducts;
 
     public Long getId() {
@@ -42,3 +42,7 @@ public class Palette {
         this.usedProducts = usedProducts;
     }
 }
+
+
+
+

@@ -22,9 +22,11 @@ public class Supply {
     @Column(name = "BARCODEOFSUPPLY")
     private  String barCodeOfSupply;
 
-    @OneToMany
-    private List<Palette> paletteList;
 
+    @OneToMany
+    private List<Palette> palettes;
+
+    private  boolean status;
     private Date arriveDate;
 
     public Long getId() {
@@ -51,13 +53,7 @@ public class Supply {
         this.barCodeOfSupply = barCodeOfSupply;
     }
 
-    public List<Palette> getPaletteList() {
-        return paletteList;
-    }
 
-    public void setPaletteList(List<Palette> paletteList) {
-        this.paletteList = paletteList;
-    }
 
     public Date getArriveDate() {
         return arriveDate;
@@ -65,5 +61,21 @@ public class Supply {
 
     public void setArriveDate(Date arriveDate) {
         this.arriveDate = arriveDate;
+    }
+
+    public List<Palette> getPalettes() {
+        return palettes;
+    }
+
+    public void setPalettes(List<Palette> palettes) {
+        this.palettes = palettes;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

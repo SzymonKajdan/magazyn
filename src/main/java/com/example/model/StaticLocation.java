@@ -3,12 +3,12 @@ package com.example.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name ="STATICLOCATION")
+@Table(name = "STATICLOCATION")
 public class StaticLocation {
     @Id
     @Column(name = "ID")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "staticlocation_seq")
-    @SequenceGenerator(name = "staticlocation_seq", sequenceName = "staticlocation_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "staticproduct_seq")
+    @SequenceGenerator(name = "staticproduct_seq", sequenceName = "staticproduct_seq", allocationSize = 1)
     private Long id;
     private String barCodeLocation;
 
