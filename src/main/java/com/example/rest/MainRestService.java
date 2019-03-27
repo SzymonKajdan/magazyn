@@ -49,78 +49,8 @@ public class MainRestService {
     }
 
 
-    @RequestMapping(path = "/findProductByName", method = RequestMethod.POST)
-    public ResponseEntity<?> findProductByName(@RequestBody String productRequest) {
-
-        JSONObject jsonObject = new JSONObject(productRequest);
-
-        List<Product> productList = productRepository.findByName(jsonObject.get("name").toString());
 
 
-        return getProductsResponseEntity(productList);
-    }
-
-    @RequestMapping(path = "/findProductByProducer", method = RequestMethod.POST)
-    public ResponseEntity<?> findProductByProducer(@RequestBody String productRequest) {
-
-        JSONObject jsonObject = new JSONObject(productRequest);
-
-        List<Product> productList = productRepository.findByProducer(jsonObject.get("producer").toString());
-
-
-        return getProductsResponseEntity(productList);
-    }
-
-    @RequestMapping(path = "/findProductByBarcode", method = RequestMethod.POST)
-    public ResponseEntity<?> findProductByBarcode(@RequestBody String productRequest) {
-
-        JSONObject jsonObject = new JSONObject(productRequest);
-
-        Product product = productRepository.findByBarCode(jsonObject.get("barcode").toString());
-
-        JSONObject tmpJsonObejct = new JSONObject();
-        if (product != null) {
-
-
-            createJsonResponse(product, tmpJsonObejct);
-
-
-        } else {
-            tmpJsonObejct.put("error", "noProductInWarehouse");
-        }
-        return ResponseEntity.ok(tmpJsonObejct.toString());
-    }
-
-    private ResponseEntity<?> getProductsResponseEntity(List<Product> productList) {
-        JSONArray jsonArrayToResponse = new JSONArray();
-        if (productList.size() != 0) {
-            for (Product p : productList) {
-                JSONObject tmpJsonObejct = new JSONObject();
-                createJsonResponse(p, tmpJsonObejct);
-                jsonArrayToResponse.put(tmpJsonObejct);
-            }
-
-        } else {
-            jsonArrayToResponse.put(new JSONObject().put("error", "noProductInWarehouse"));
-        }
-        return ResponseEntity.ok(jsonArrayToResponse.toString());
-    }
-
-
-    private void createJsonResponse(Product product, JSONObject tmpJsonObejct) {
-        int logicAmount = product.getLogicState();
-        tmpJsonObejct.put("logicState", logicAmount);
-
-        int phsycialState = countPhyscialState(product.getLocations());
-        tmpJsonObejct.put("physicalSate", phsycialState);
-        tmpJsonObejct.put("name", product.getName());
-        tmpJsonObejct.put("location", product.getLogicState());
-        tmpJsonObejct.put("barcode", product.getBarCode());
-        tmpJsonObejct.put("exprDate", product.getExprDate());
-        tmpJsonObejct.put("producer", product.getProducer());
-        tmpJsonObejct.put("id", product.getId());
-        tmpJsonObejct.put("price", product.getPrice());
-    }
 
 
 }

@@ -1,5 +1,7 @@
 package com.example.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.json.JSONPropertyIgnore;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
@@ -18,32 +20,23 @@ public class Product {
     @SequenceGenerator(name = "product_seq", sequenceName = "product_seq", allocationSize = 1)
     private Long id;
 
-    @Column(name = "BARCODE", length = 100, unique = true)
-    @NotNull
-    @Size(min = 4, max = 100)
-    private String barCode;
 
-    @OneToMany
-    //@Nullable
-    private List<Location> locations;
-
-    @Column(name = "PRICE")
-    @NotNull
-    private Double price;
-
-    @Column(name = "quantityOnThePalette")
-    @NotNull
-    private int quantityOnThePalette;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @NotNull
+
     private Date exprDate;
 
-    private String producer;
+    private int state;
 
-    private int logicState;
+    @ManyToMany
+    @JoinTable(
+            name = "PRODUCT_LOCATION",
+            joinColumns = {@JoinColumn(name = "PRODUCT_ID", referencedColumnName = "ID")},
+            inverseJoinColumns = {@JoinColumn(name = "LOCATION_ID", referencedColumnName = "ID")})
+    private List<Location> locations;
 
-    private  String name;
+    @ManyToOne
+    private StaticProduct staticProduct;
 
     public Long getId() {
         return id;
@@ -53,38 +46,7 @@ public class Product {
         this.id = id;
     }
 
-    public String getBarCode() {
-        return barCode;
-    }
 
-    public void setBarCode(String barCode) {
-        this.barCode = barCode;
-    }
-
-
-    public List<Location> getLocations() {
-        return locations;
-    }
-
-    public void setLocations(List<Location> locations) {
-        this.locations = locations;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public int getQuantityOnThePalette() {
-        return quantityOnThePalette;
-    }
-
-    public void setQuantityOnThePalette(int quantityOnThePalette) {
-        this.quantityOnThePalette = quantityOnThePalette;
-    }
 
     public Date getExprDate() {
         return exprDate;
@@ -94,27 +56,28 @@ public class Product {
         this.exprDate = exprDate;
     }
 
-    public String getProducer() {
-        return producer;
+    @JsonIgnore
+    public List<Location> getLocations() {
+        return locations;
     }
 
-    public void setProducer(String producer) {
-        this.producer = producer;
+    public void setLocations(List<Location> locationList) {
+        this.locations = locationList;
     }
 
-    public int getLogicState() {
-        return logicState;
+    public int getState() {
+        return state;
     }
 
-    public void setLogicState(int logicState) {
-        this.logicState = logicState;
+    public void setState(int state) {
+        this.state = state;
+    }
+    @JsonIgnore
+    public StaticProduct getStaticProduct() {
+        return staticProduct;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setStaticProduct(StaticProduct staticProduct) {
+        this.staticProduct = staticProduct;
     }
 }
