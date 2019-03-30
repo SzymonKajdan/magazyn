@@ -1,5 +1,7 @@
 package com.example.model;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -42,6 +44,10 @@ public class StaticProduct {
 
     @ManyToMany
     private List<StaticLocation> staticLocations;
+
+    @ColumnDefault(value = "1")
+    private int amountInAPack;
+
 
     public Long getId() {
         return id;
@@ -122,5 +128,13 @@ public class StaticProduct {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public int getAmountInAPack() {
+        return amountInAPack;
+    }
+
+    public void setAmountInAPack(int amountInAPack) {
+        this.amountInAPack = amountInAPack;
     }
 }

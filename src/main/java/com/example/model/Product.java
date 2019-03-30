@@ -52,7 +52,7 @@ public class Product {
         this.exprDate = exprDate;
     }
 
-    @JsonIgnore
+
     public List<Location> getLocations() {
         return locations;
     }
