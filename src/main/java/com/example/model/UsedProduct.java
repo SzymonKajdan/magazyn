@@ -41,7 +41,6 @@ public class UsedProduct {
         this.quanitity = quanitity;
     }
 
-
     public boolean isPicked() {
         return isPicked;
     }

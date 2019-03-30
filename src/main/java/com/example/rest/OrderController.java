@@ -1,4 +1,3 @@
-
 package com.example.rest;
 
 import com.example.model.*;
@@ -239,4 +238,3 @@ public class OrderController {
         return ResponseEntity.ok(returnJson.toString());
     }
 }
-

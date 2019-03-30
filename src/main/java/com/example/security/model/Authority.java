@@ -1,6 +1,7 @@
 package com.example.security.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.json.JSONPropertyIgnore;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -41,6 +42,7 @@ public class Authority {
         this.name = name;
     }
 
+    @JSONPropertyIgnore
     public List<User> getUsers() {
         return users;
     }
