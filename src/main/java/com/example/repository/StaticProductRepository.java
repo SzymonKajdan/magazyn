@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface StaticProductRepository extends JpaRepository<StaticProduct, Long> {
     StaticProduct findByNameAndProducer(String name, String producer );
     StaticProduct findByBarCode(String barcode);
+    StaticProduct findByName(String name);
 
 }

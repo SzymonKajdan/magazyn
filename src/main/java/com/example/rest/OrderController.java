@@ -49,23 +49,6 @@ public class OrderController {
         return ResponseEntity.ok(orderRepository.findAllByEndDateOrderByDate(null));
     }
 
-    @RequestMapping(path = "/findAllByPrincipal", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> getAllByPrincipal(@RequestBody String request) {
-
-        JSONObject json = new JSONObject(request);
-        Optional<Principal> optionalPrincipal = principalRepository.findById(json.getLong("id"));
-
-        if(optionalPrincipal.isPresent()) {
-
-            return ResponseEntity.ok(orderRepository.findAllByPrincipal(optionalPrincipal.get()));
-        }
-
-        JSONObject response = new JSONObject();
-        response.put("success",false);
-        response.put("message","Nie znaleziono takiego Principala");
-        return ResponseEntity.ok(response.toString());
-    }
-
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> makeOrder(@RequestBody String request) {
 
@@ -174,71 +157,68 @@ public class OrderController {
 
         long orderID = json.getLong("orderID");
         Order o = orderRepository.getOne(orderID);
-        if(o!=null) {
 
-            JSONArray jsonArray = json.getJSONArray("products");
+        JSONArray jsonArray = json.getJSONArray("products");
 
-            List<UsedProduct> usedProductList = new ArrayList<>();
-            List<Product> productList = new ArrayList<>();
-            List<ProductIdWithQuantity> productIdWithQuantityList = new ArrayList<>();
+        List<UsedProduct> usedProductList = new ArrayList<>();
+        List<Product> productList = new ArrayList<>();
+        List<ProductIdWithQuantity> productIdWithQuantityList = new ArrayList<>();
 
-            Map<Long, ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
+        Map<Long,ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
 
-            for (UsedProduct usedProduct : o.getUsedProductList()) {
-                ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
-                productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
-                productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
-                productIdWithQuantityList.add(productIdWithQuantity);
+        for(UsedProduct usedProduct: o.getUsedProductList()){
+            ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
+            productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
+            productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
+            productIdWithQuantityList.add(productIdWithQuantity);
 
-                productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(), new ProductIdWithQuantity(usedProduct.getIdStaticProduct(), usedProduct.getQuanitity()));
+            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(),new ProductIdWithQuantity(usedProduct.getIdStaticProduct(),usedProduct.getQuanitity()));
 
-                usedProduct.setPicked(true);
-                usedProductList.add(usedProduct);
-            }
-
-            for (int i = 0; i < jsonArray.length(); ++i) {
-
-                JSONObject jo = jsonArray.getJSONObject(i);
-                Location l = locationRepository.findByBarCodeLocation(jo.getString("locationBarCode"));
-                Product p = productRepository.findById(jo.getLong("productID")).get();
-                int quantiy = jo.getInt("quantity");
-
-                //System.out.println("XDD " + jsonArray.toString());
-                //System.out.println("XDDDDDDDDDDDDDDD " + jsonArray.length());
-
-                Long staticProductID = p.getStaticProduct().getId();
-                //System.out.println("XDD " + staticProductID);
-                productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity() - quantiy);
-
-                if (productIdWithQuantityMap.get(staticProductID).getQuantity() == 0) {
-                    productIdWithQuantityMap.remove(staticProductID);
-                } else if (productIdWithQuantityMap.get(staticProductID).getQuantity() < 0) {
-                    System.out.println("ERROR");
-                }
-
-                p.setState(p.getState() - quantiy);
-                productList.add(p);
-            }
-
-            if (productIdWithQuantityMap.isEmpty()) {
-
-                usedProductRepository.saveAll(usedProductList);
-                productRepository.saveAll(productList);
-                //System.out.println("XDDDDDDDDDDDDD");
-
-                returnJson.put("success", true);
-                return ResponseEntity.ok(returnJson.toString());
-
-            } else {
-                returnJson.put("success", false);
-                returnJson.put("message", "PRODUKTY_SIE_NIE_ZGADZAJA");
-                return ResponseEntity.ok(returnJson.toString());
-            }
+            usedProduct.setPicked(true);
+            usedProductList.add(usedProduct);
         }
 
-        returnJson.put("success", false);
-        returnJson.put("message", "Zamowienie nie istnieje");
-        return ResponseEntity.ok(returnJson.toString());
+        for(int i=0; i<jsonArray.length();++i) {
+
+            JSONObject jo = jsonArray.getJSONObject(i);
+            Location l = locationRepository.findByBarCodeLocation(jo.getString("locationBarCode"));
+            Product p = productRepository.findById(jo.getLong("productID")).get();
+            int quantiy = jo.getInt("quantity");
+
+            //System.out.println("XDD " + jsonArray.toString());
+            //System.out.println("XDDDDDDDDDDDDDDD " + jsonArray.length());
+
+            Long staticProductID = p.getStaticProduct().getId();
+            //System.out.println("XDD " + staticProductID);
+            productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity()-quantiy);
+
+            if(productIdWithQuantityMap.get(staticProductID).getQuantity() == 0)
+            {
+                productIdWithQuantityMap.remove(staticProductID);
+            }
+            else if(productIdWithQuantityMap.get(staticProductID).getQuantity()<0){
+                System.out.println("ERROR");
+            }
+
+            p.setState(p.getState()-quantiy);
+            productList.add(p);
+        }
+
+        if(productIdWithQuantityMap.isEmpty()){
+
+            usedProductRepository.saveAll(usedProductList);
+            productRepository.saveAll(productList);
+            //System.out.println("XDDDDDDDDDDDDD");
+
+            returnJson.put("success",true);
+            return ResponseEntity.ok(returnJson.toString());
+
+        }
+        else{
+            returnJson.put("success",false);
+            returnJson.put("message","PRODUKTY_SIE_NIE_ZGADZAJA");
+            return ResponseEntity.ok(returnJson.toString());
+        }
     }
 
     @RequestMapping(path = "/end", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -250,42 +230,11 @@ public class OrderController {
         long orderID = json.getLong("orderID");
 
         Order o = orderRepository.getOne(orderID);
-        if(o!=null) {
-            o.setEndDate(new Date());
+        o.setEndDate(new Date());
 
-            JSONObject order = new JSONObject();
-            order.put("principal", new JSONObject(o.getPrincipal()));
-            order.put("worker", new JSONObject(o.getUser()));
-            order.put("endDate", o.getEndDate());
-            order.put("price", o.getPrice());
+        orderRepository.save(o);
 
-            JSONArray staticProducts = new JSONArray();
-            for (UsedProduct up : o.getUsedProductList()) {
-
-                if(!up.isPicked()){
-                    returnJson.put("success", false);
-                    returnJson.put("mesage", "Nie wszystkie produkty są wzięte");
-                    return ResponseEntity.ok(returnJson.toString());
-                }
-
-                StaticProduct sp = staticProductRepository.findById(up.getIdStaticProduct()).get();
-                Map<String, Object> map = new HashMap<>();
-                map.put("product", sp);
-                map.put("quantity", up.getQuanitity());
-                staticProducts.put(map);
-            }
-
-            order.put("products", staticProducts);
-
-            orderRepository.save(o);
-
-            returnJson.put("success", true);
-            returnJson.put("order", order);
-            return ResponseEntity.ok(returnJson.toString());
-        }
-
-        returnJson.put("success", false);
-        returnJson.put("message", "Zamowienie nie istnieje");
+        returnJson.put("success", true);
         return ResponseEntity.ok(returnJson.toString());
     }
 }

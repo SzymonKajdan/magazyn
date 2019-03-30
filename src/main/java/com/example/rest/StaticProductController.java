@@ -6,6 +6,9 @@ import com.example.model.StaticProduct;
 import com.example.repository.LocationRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.StaticProductRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +46,43 @@ public class StaticProductController {
 
 
     @RequestMapping(path = "/getInfoAboutProduct", method = RequestMethod.POST)
-    public ResponseEntity<?> getInfoAboutProduct(@RequestBody String barcode) {
+    public ResponseEntity<?> getInfoAboutProduct(@RequestBody String barcode) throws JsonProcessingException {
         JSONObject js = new JSONObject(barcode);
-        return ResponseEntity.ok(staticProductRepository.findByBarCode(js.get("barCode").toString()));
+        System.out.println(js.toString());
+        Long id=js.getLong("id");
+        System.out.println(id);
+        if(id!=0){
+            StaticProduct staticProduct=staticProductRepository.getOne(id);
+
+            JSONObject jsonObject=new JSONObject();
+            jsonObject.put("id",staticProduct.getId());
+            jsonObject.put("logicSate",staticProduct.getLogicState());
+            jsonObject.put("name",staticProduct.getName());
+            jsonObject.put("barCode",staticProduct.getBarCode());
+            jsonObject.put("producer",staticProduct.getProducer());
+            jsonObject.put("quantityOnThePalette",staticProduct.getQuantityOnThePalette());
+            jsonObject.put("price",staticProduct.getPrice());
+            jsonObject.put("category",staticProduct.getCategory());
+            JSONArray jsonArray=new JSONArray();
+
+            for(Product product:staticProduct.getProducts()){
+                JSONObject jsonObject1=new JSONObject();
+                jsonObject1.put("id",product.getId());
+                jsonObject1.put("exprDate",product.getExprDate());
+                jsonObject1.put("state",product.getState());
+                jsonObject1.put("locations",product.getLocations());
+
+                jsonArray.put(jsonObject1);
+            }
+            jsonObject.put("staticLcoations",staticProduct.getStaticLocations());
+            //System.out.println(jsonObject);
+            jsonObject.put("products",jsonArray);
+            return  ResponseEntity.ok(jsonObject.toString());
+        }else{
+            return ResponseEntity.ok(new JSONObject().put("Status","error"));
+        }
+
+
     }
 
 

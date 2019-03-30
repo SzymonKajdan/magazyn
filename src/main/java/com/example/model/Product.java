@@ -1,7 +1,6 @@
 package com.example.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.json.JSONPropertyIgnore;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -17,7 +16,10 @@ public class Product {
     @SequenceGenerator(name = "product_seq", sequenceName = "product_seq", allocationSize = 1)
     private Long id;
 
+
+
     @Temporal(TemporalType.TIMESTAMP)
+
     private Date exprDate;
 
     private int state;
@@ -40,6 +42,8 @@ public class Product {
         this.id = id;
     }
 
+
+
     public Date getExprDate() {
         return exprDate;
     }
@@ -49,7 +53,6 @@ public class Product {
     }
 
     @JsonIgnore
-    @JSONPropertyIgnore
     public List<Location> getLocations() {
         return locations;
     }
@@ -65,9 +68,7 @@ public class Product {
     public void setState(int state) {
         this.state = state;
     }
-
     @JsonIgnore
-    @JSONPropertyIgnore
     public StaticProduct getStaticProduct() {
         return staticProduct;
     }

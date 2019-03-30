@@ -25,6 +25,8 @@ public class StaticProduct {
     @Column(name = "quantityOnThePalette")
     @NotNull
     private int quantityOnThePalette;
+    @ColumnDefault(value = "1")
+    private int amountInAPack;
 
     private String producer;
 
@@ -37,11 +39,7 @@ public class StaticProduct {
 
     private int logicState;
 
-    @ColumnDefault(value = "1")
-    private int amountInAPack;
-
     private String category;
-
     @OneToMany
     private List<Product> products;
 
@@ -129,11 +127,9 @@ public class StaticProduct {
         this.products = products;
     }
 
+
+
     public int getAmountInAPack() {
         return amountInAPack;
-    }
-
-    public void setAmountInAPack(int amountInAPack) {
-        this.amountInAPack = amountInAPack;
     }
 }
