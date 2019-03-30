@@ -17,7 +17,6 @@ public class Order {
     @SequenceGenerator(name = "order_seq", sequenceName = "order_seq", allocationSize = 1)
     private Long id;
 
-
     @OneToOne
     private User user;
 
@@ -86,7 +85,6 @@ public class Order {
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
-
 
     public Date getDepartureDate() {
         return departureDate;

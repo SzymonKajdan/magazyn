@@ -1,6 +1,7 @@
 package com.example.security.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.json.JSONPropertyIgnore;
 
 import java.util.Date;
 import java.util.List;
@@ -89,6 +90,7 @@ public class User {
         this.username = username;
     }
 
+    @JSONPropertyIgnore
     public String getPassword() {
         return password;
     }
