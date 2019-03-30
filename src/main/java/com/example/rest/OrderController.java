@@ -49,6 +49,23 @@ public class OrderController {
         return ResponseEntity.ok(orderRepository.findAllByEndDateOrderByDate(null));
     }
 
+    @RequestMapping(path = "/findAllByPrincipal", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getAllByPrincipal(@RequestBody String request) {
+
+        JSONObject json = new JSONObject(request);
+        Optional<Principal> optionalPrincipal = principalRepository.findById(json.getLong("id"));
+
+        if(optionalPrincipal.isPresent()) {
+
+            return ResponseEntity.ok(orderRepository.findAllByPrincipal(optionalPrincipal.get()));
+        }
+
+        JSONObject response = new JSONObject();
+        response.put("success",false);
+        response.put("message","Nie znaleziono takiego Principala");
+        return ResponseEntity.ok(response.toString());
+    }
+
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> makeOrder(@RequestBody String request) {
 
