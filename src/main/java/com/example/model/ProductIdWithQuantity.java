@@ -36,8 +36,4 @@ public class ProductIdWithQuantity {
                 ", quantity=" + quantity +
                 '}';
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> szymonbranch

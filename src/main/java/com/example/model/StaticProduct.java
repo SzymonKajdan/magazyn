@@ -1,5 +1,7 @@
 package com.example.model;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -23,7 +25,8 @@ public class StaticProduct {
     @Column(name = "quantityOnThePalette")
     @NotNull
     private int quantityOnThePalette;
-
+    @ColumnDefault(value = "1")
+    private int amountInAPack;
 
     private String producer;
 
@@ -122,5 +125,11 @@ public class StaticProduct {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+
+
+    public int getAmountInAPack() {
+        return amountInAPack;
     }
 }
