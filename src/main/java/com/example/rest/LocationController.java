@@ -58,7 +58,7 @@ public class LocationController {
             staticIfno.put("name", product.getStaticProduct().getName());
             staticIfno.put("logicState", product.getStaticProduct().getLogicState());
             staticIfno.put("amountInPack",product.getStaticProduct().getAmountInAPack());
-            staticIfno.put("staticLocations", product.getStaticProduct().getStaticLocations());
+            staticIfno.put("staticLocations", product.getStaticProduct().getStaticLocation());
             object.put("id", product.getId());
             object.put("exprDate", product.getExprDate());
             object.put("state", product.getState());

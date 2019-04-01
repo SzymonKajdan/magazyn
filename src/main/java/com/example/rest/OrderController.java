@@ -134,6 +134,7 @@ public class OrderController {
             //jo.put("order",o);
             jo.put("products",ja);
             jo.put("palletes",palletes);
+            jo.put("id",o.getId());
 
             return ResponseEntity.ok(jo.toString());
 
@@ -211,6 +212,7 @@ public class OrderController {
             //System.out.println("XDDDDDDDDDDDDD");
 
             returnJson.put("success",true);
+
             return ResponseEntity.ok(returnJson.toString());
 
         }

@@ -34,39 +34,29 @@ public class StaticProductController {
     @Autowired
     ProductRepository productRepository;
 
+
     @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<?> getAllProducts() {
         List<StaticProduct> allProducts = staticProductRepository.findAll();
         JSONArray jsonArray = new JSONArray();
 
         for (StaticProduct oneProduct : allProducts) {
-            JSONObject jsonObjecOfStaticProduct = new JSONObject();
-            jsonObjecOfStaticProduct.put("id", oneProduct.getId());
-            jsonObjecOfStaticProduct.put("price", oneProduct.getPrice());
-            jsonObjecOfStaticProduct.put("quantityOnThePalette", oneProduct.getQuantityOnThePalette());
-            jsonObjecOfStaticProduct.put("amountInAPack", oneProduct.getAmountInAPack());
-            jsonObjecOfStaticProduct.put("producer", oneProduct.getProducer());
-            jsonObjecOfStaticProduct.put("barCode", oneProduct.getBarCode());
-            jsonObjecOfStaticProduct.put("name", oneProduct.getName());
-            jsonObjecOfStaticProduct.put("logicSate", oneProduct.getLogicState());
-            jsonObjecOfStaticProduct.put("category", oneProduct.getCategory());
+            JSONObject jsonObjecOfStaticProduct = createJsonToResponse(oneProduct);
+
             JSONArray products = new JSONArray();
             for (Product one : oneProduct.getProducts()) {
-                JSONObject oneProdcutJson = new JSONObject();
-                oneProdcutJson.put("id", one.getId());
-                oneProdcutJson.put("exprDate", one.getExprDate());
-                oneProdcutJson.put("state", one.getState());
-                JSONArray locationArray = new JSONArray();
+                JSONObject oneProdcutJson = productJson(one);
+                JSONObject location = new JSONObject();
                 for (Location l : one.getLocations()) {
-                    JSONObject location = new JSONObject();
+
                     location.put("id", l.getId());
                     location.put("barCodeLocation", l.getBarCodeLocation());
-                    locationArray.put(location);
+
                 }
-                oneProdcutJson.put("locations", locationArray);
+                oneProdcutJson.put("locations", location);
                 products.put(oneProdcutJson);
             }
-            jsonObjecOfStaticProduct.put("products",products);
+            jsonObjecOfStaticProduct.put("products", products);
             jsonArray.put(jsonObjecOfStaticProduct);
         }
 
@@ -83,27 +73,16 @@ public class StaticProductController {
         if (id != 0) {
             StaticProduct staticProduct = staticProductRepository.getOne(id);
 
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("id", staticProduct.getId());
-            jsonObject.put("logicSate", staticProduct.getLogicState());
-            jsonObject.put("name", staticProduct.getName());
-            jsonObject.put("barCode", staticProduct.getBarCode());
-            jsonObject.put("producer", staticProduct.getProducer());
-            jsonObject.put("quantityOnThePalette", staticProduct.getQuantityOnThePalette());
-            jsonObject.put("price", staticProduct.getPrice());
-            jsonObject.put("category", staticProduct.getCategory());
+            JSONObject jsonObject = createJsonToResponse(staticProduct);
             JSONArray jsonArray = new JSONArray();
 
             for (Product product : staticProduct.getProducts()) {
-                JSONObject jsonObject1 = new JSONObject();
-                jsonObject1.put("id", product.getId());
-                jsonObject1.put("exprDate", product.getExprDate());
-                jsonObject1.put("state", product.getState());
-                jsonObject1.put("locations", product.getLocations());
+                JSONObject jsonObject1 = productJson(product);
 
                 jsonArray.put(jsonObject1);
             }
-            jsonObject.put("staticLcoations", staticProduct.getStaticLocations());
+
+
             //System.out.println(jsonObject);
             jsonObject.put("products", jsonArray);
             return ResponseEntity.ok(jsonObject.toString());
@@ -144,6 +123,55 @@ public class StaticProductController {
             return ResponseEntity.ok(new JSONObject().put("Status", "ProductAlredyExist").toString());
         }
 
+    }
+
+    @RequestMapping(path = "/findAllProducts", method = RequestMethod.GET)
+    public ResponseEntity<?> findAllProducts() {
+        List<StaticProduct> allProducts = staticProductRepository.findAll();
+        JSONArray jsonArray = new JSONArray();
+
+        for (StaticProduct oneProduct : allProducts) {
+            JSONObject jsonObjecOfStaticProduct = new JSONObject();
+            jsonObjecOfStaticProduct.put("id", oneProduct.getId());
+            jsonObjecOfStaticProduct.put("producer", oneProduct.getProducer());
+            jsonObjecOfStaticProduct.put("barCode", oneProduct.getBarCode());
+            jsonObjecOfStaticProduct.put("name", oneProduct.getName());
+            jsonObjecOfStaticProduct.put("category", oneProduct.getCategory());
+            jsonArray.put(jsonObjecOfStaticProduct);
+        }
+        return ResponseEntity.ok(jsonArray.toString());
+
+    }
+
+
+    private JSONObject createJsonToResponse(StaticProduct staticProduct) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", staticProduct.getId());
+        jsonObject.put("price", staticProduct.getPrice());
+        jsonObject.put("quantityOnThePalette", staticProduct.getQuantityOnThePalette());
+        jsonObject.put("quantityInPackage", staticProduct.getAmountInAPack());
+        jsonObject.put("producer", staticProduct.getProducer());
+        jsonObject.put("barCode", staticProduct.getBarCode());
+        jsonObject.put("name", staticProduct.getName());
+        jsonObject.put("logicState", staticProduct.getLogicState());
+        jsonObject.put("category", staticProduct.getCategory());
+
+        JSONObject staticLocation = new JSONObject();
+        staticLocation.put("id", staticProduct.getStaticLocation().getId());
+        staticLocation.put("barCodeLocation", staticProduct.getStaticLocation().getBarCodeLocation());
+
+        jsonObject.put("staticLocation", staticLocation);
+        return jsonObject;
+
+    }
+
+    private JSONObject productJson(Product product) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", product.getId());
+        jsonObject.put("exprDate", product.getExprDate());
+        jsonObject.put("state", product.getState());
+        jsonObject.put("locations", product.getLocations());
+        return jsonObject;
     }
 
     private void addProductToLocation(Location lcotionToUpdate, List<Product> products, String oldLocation) {

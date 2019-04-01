@@ -109,7 +109,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp1.setQuantityOnThePalette(100);
             sp1.setBarCode("000001");
             sp1.setLogicState(1100);
-            sp1.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1)));
+            sp1.setStaticLocation(sl1);
             sp1.setProducts(new ArrayList<>());
 
             StaticProduct sp2 = new StaticProduct();
@@ -119,7 +119,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp2.setPrice(210.0);
             sp2.setQuantityOnThePalette(200);
             sp2.setLogicState(2000);
-            sp2.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl2)));
+            sp2.setStaticLocation(sl2);
             sp2.setBarCode("000002");
             sp2.setProducts(new ArrayList<>());
             StaticProduct sp3 = new StaticProduct();
@@ -129,7 +129,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp3.setPrice(90.0);
             sp3.setQuantityOnThePalette(20);
             sp3.setLogicState(3000);
-            sp3.setStaticLocations(new ArrayList<StaticLocation>(Arrays.asList(sl1,sl2,sl3)));
+            sp3.setStaticLocation(sl3);
             sp3.setBarCode("000003");
             sp3.setProducts(new ArrayList<>());
 

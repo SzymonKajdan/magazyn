@@ -43,8 +43,8 @@ public class StaticProduct {
     @OneToMany
     private List<Product> products;
 
-    @ManyToMany
-    private List<StaticLocation> staticLocations;
+    @ManyToOne
+    private StaticLocation staticLocation;
 
     public Long getId() {
         return id;
@@ -71,13 +71,11 @@ public class StaticProduct {
         this.quantityOnThePalette = quantityOnThePalette;
     }
 
-    public List<StaticLocation> getStaticLocations() {
-        return staticLocations;
+    public void setAmountInAPack(int amountInAPack) {
+        this.amountInAPack = amountInAPack;
     }
 
-    public void setStaticLocations(List<StaticLocation> staticLocations) {
-        this.staticLocations = staticLocations;
-    }
+
 
     public String getCategory() {
         return category;
@@ -131,5 +129,13 @@ public class StaticProduct {
 
     public int getAmountInAPack() {
         return amountInAPack;
+    }
+
+    public StaticLocation getStaticLocation() {
+        return staticLocation;
+    }
+
+    public void setStaticLocation(StaticLocation staticLocation) {
+        this.staticLocation = staticLocation;
     }
 }
