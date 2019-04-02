@@ -99,13 +99,21 @@ public class StaticProductController {
             StaticProduct staticProduct = staticProductRepository.getOne(id);
 
             JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id", staticProduct.getId());
+            jsonObject.put("price", staticProduct.getPrice());
+            jsonObject.put("quantityOnThePalette", staticProduct.getQuantityOnThePalette());
+            jsonObject.put("quantityInPackage", staticProduct.getAmountInAPack());
+            jsonObject.put("producer", staticProduct.getProducer());
+            jsonObject.put("barCode", staticProduct.getBarCode());
+            jsonObject.put("name", staticProduct.getName());
+            jsonObject.put("logicState", staticProduct.getLogicState());
+            jsonObject.put("category", staticProduct.getCategory());
 
+            JSONObject staticLocation = new JSONObject();
+            staticLocation.put("id", staticProduct.getStaticLocation().getId());
+            staticLocation.put("barCodeLocation", staticProduct.getStaticLocation().getBarCodeLocation());
 
-
-
-
-            //System.out.println(jsonObject);
-            jsonObject.put("name",staticProduct.getName());
+            jsonObject.put("staticLocation", staticLocation);
             return ResponseEntity.ok(jsonObject.toString());
         } else {
             return ResponseEntity.ok(new JSONObject().put("Status", "error"));
