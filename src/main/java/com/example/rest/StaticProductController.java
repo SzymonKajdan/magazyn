@@ -12,17 +12,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.parsers.LocationParser.locationParserOneLocation;
 import static com.example.parsers.StaticPorductPraser.staticProductParser;
-
+@CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 @RequestMapping("/Product")
 public class StaticProductController {
@@ -66,8 +63,10 @@ public class StaticProductController {
 
     @RequestMapping(path = "/getInfoAboutProduct", method = RequestMethod.POST)
     public ResponseEntity<?> getInfoAboutProduct(@RequestBody String barcode) throws JsonProcessingException {
+        System.out.println("json" +barcode);
         JSONObject js = new JSONObject(barcode);
-        System.out.println(js.toString());
+
+
         Long id = js.getLong("id");
         System.out.println(id);
         if (id != 0) {
@@ -92,7 +91,27 @@ public class StaticProductController {
 
 
     }
+    @RequestMapping(path = "/test", method = RequestMethod.POST)
+    public ResponseEntity<?> test(@RequestBody String test) {
+        JSONObject js=new JSONObject(test);
+        Long id=js.getLong("id");
+        if (id != 0) {
+            StaticProduct staticProduct = staticProductRepository.getOne(id);
 
+            JSONObject jsonObject = new JSONObject();
+
+
+
+
+
+            //System.out.println(jsonObject);
+            jsonObject.put("name",staticProduct.getName());
+            return ResponseEntity.ok(jsonObject.toString());
+        } else {
+            return ResponseEntity.ok(new JSONObject().put("Status", "error"));
+        }
+
+    }
 
     @RequestMapping(path = "/changeLocationOfTheProduct", method = RequestMethod.POST)
     public ResponseEntity<?> changeLocationOfTheProduct(@RequestBody String newLocation) {

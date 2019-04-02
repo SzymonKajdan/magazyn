@@ -6,10 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +14,7 @@ import java.util.List;
 
 import static com.example.parsers.LocationParser.locationParser;
 import static com.example.parsers.SupplyParser.supplyParser;
-
+@CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 public class SupplyController {
 
