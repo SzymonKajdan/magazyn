@@ -5,9 +5,6 @@ import com.example.repository.*;
 import com.example.security.model.Authority;
 import com.example.security.model.AuthorityName;
 import com.example.security.model.User;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -163,11 +160,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Product p1 = new Product();
             p1.setStaticProduct(sp1);
-            String dateTime = "10/12/2020 08:00:00";
-            // Format for input
-            DateTimeFormatter dtf = DateTimeFormat.forPattern("MM/dd/yyyy HH:mm:ss");
+
             //p1.setExprDate(new Date("2019-11-02"));
-            p1.setExprDate(new DateTime().toString(DateTimeFormat.shortDateTime()));
+            p1.setExprDate(new Date());
             p1.setState(1000);
             p1.setLocations(new ArrayList<Location>(Arrays.asList(l1)));
 
@@ -175,7 +170,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             p11.setStaticProduct(sp1);
 
             //p1.setExprDate(new Date("2020-02-22"));
-            p11.setExprDate(new DateTime().toString(DateTimeFormat.shortDateTime()));
+            p11.setExprDate(new Date());
             p11.setState(100);
             p11.setLocations(new ArrayList<Location>(Arrays.asList(l1)));
 
@@ -183,7 +178,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             p2.setStaticProduct(sp2);
 
             //p2.setExprDate(new Date("2020-02-23"));
-            p2.setExprDate(new DateTime().toString(DateTimeFormat.shortDateTime()));
+            p2.setExprDate(new Date());
             p2.setState(2000);
             p2.setLocations(new ArrayList<Location>(Arrays.asList(l2)));
 
@@ -191,9 +186,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             p3.setStaticProduct(sp3);
 
             //p3.setExprDate(new Date("2021-02-22"));
-            p3.setExprDate(new DateTime().toString(DateTimeFormat.shortDateTime()));
+            p3.setExprDate(new Date());
             p3.setState(3000);
-            p3.setLocations(new ArrayList<Location>(Arrays.asList(l1, l2, l3)));
+            p3.setLocations(new ArrayList<Location>(Arrays.asList(l1,l2,l3)));
 
             productRepository.save(p1);
 
@@ -236,7 +231,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             up1.setQuanitity(10);
 
             // ze statica usuwamy z logicstate zeby wiedziec ile zostało niezamowionych produktow
-            sp1.setLogicState(sp1.getLogicState() - 10);
+            sp1.setLogicState(sp1.getLogicState()-10);
 
             Order o1 = new Order();
             o1.setPrincipal(pr1);
@@ -261,7 +256,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp1.getProducts();
 
             // po tym co wybierze usuwa sie ze stanu produktu
-            p1.setState(p1.getState() - 10);
+            p1.setState(p1.getState()-10);
         }
 
     }

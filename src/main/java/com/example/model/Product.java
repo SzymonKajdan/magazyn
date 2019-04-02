@@ -18,9 +18,9 @@ public class Product {
 
 
 
+    @Temporal(TemporalType.TIMESTAMP)
 
-
-    private String exprDate;
+    private Date exprDate;
 
     private int state;
 
@@ -44,11 +44,11 @@ public class Product {
 
 
 
-    public String getExprDate() {
+    public Date getExprDate() {
         return exprDate;
     }
 
-    public void setExprDate(String exprDate) {
+    public void setExprDate(Date exprDate) {
         this.exprDate = exprDate;
     }
 
