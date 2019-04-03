@@ -8,6 +8,7 @@ import com.example.repository.StaticProductRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class ProductController {
     @Autowired
     StaticProductRepository staticProductRepository;
 
-    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllProducts() {
         return ResponseEntity.ok(staticProductRepository.findAll());
     }
@@ -32,7 +33,7 @@ public class ProductController {
 //        return ResponseEntity.ok(productRepository.findAllByOrderByName());
 //    }
 
-    @RequestMapping(path = "/add", method = RequestMethod.PUT)
+    @RequestMapping(path = "/add", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addProduct(@RequestBody Product p) {
 
             productRepository.save(p);
@@ -40,7 +41,7 @@ public class ProductController {
 
     }
 
-    @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deleteProduct(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -48,20 +49,30 @@ public class ProductController {
             long id = json.getLong("id");
             if(productRepository.existsById(id)) {
                 productRepository.deleteById(id);
-                return ResponseEntity.ok("Success");
+
+                JSONObject jo = new JSONObject();
+                jo.put("success", true);
+                jo.put("status", "OK");
+
+                return ResponseEntity.ok(jo.toString());
             }
         }
         return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "/find", method = RequestMethod.GET)
+    @RequestMapping(path = "/find", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> findProduct(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
         if(!json.isNull("id")){
             return ResponseEntity.ok(productRepository.findById(json.getLong("id")));
         }
-        return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
+        JSONObject jo = new JSONObject();
+
+        jo.put("success", false);
+        jo.put("status", "ERROR");
+        jo.put("message", "NIE ZNALEZIONO");
+        return new ResponseEntity<>(jo.toString(), HttpStatus.NOT_FOUND);
     }
 
 }

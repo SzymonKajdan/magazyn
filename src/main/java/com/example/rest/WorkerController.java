@@ -5,6 +5,7 @@ import com.example.repository.PrincipalRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,7 @@ public class WorkerController {
 
     @Autowired PrincipalRepository principalRepository;
 
-    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllPrincipals() {
         return ResponseEntity.ok(principalRepository.findAll());
     }
@@ -25,19 +26,27 @@ public class WorkerController {
         return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
     }
 
-    @RequestMapping(path = "/add", method = RequestMethod.PUT)
+    @RequestMapping(path = "/add", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addPrincipal(@RequestBody Principal p) {
 
         if(!principalRepository.existsByNip(p.getNip())) {
             principalRepository.save(p);
-            return ResponseEntity.ok("Success");
+            JSONObject jo = new JSONObject();
+
+            jo.put("success", true);
+            jo.put("status", "OK");
+            return ResponseEntity.ok(jo.toString());
         }
         else{
-            return new ResponseEntity<>("NIP_ALREADY_EXISTS", HttpStatus.CONFLICT);
+            JSONObject jo = new JSONObject();
+            jo.put("success", false);
+            jo.put("status", "ERROR");
+            jo.put("message", "NIP_ALREADY_EXISTS");
+            return new ResponseEntity<>(jo.toString(), HttpStatus.CONFLICT);
         }
     }
 
-    @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -45,7 +54,12 @@ public class WorkerController {
             long id = json.getLong("id");
             if(principalRepository.existsById(id)) {
                 principalRepository.deleteById(id);
-                return ResponseEntity.ok("Success");
+
+                JSONObject jo = new JSONObject();
+                jo.put("success", true);
+                jo.put("status", "OK");
+
+                return ResponseEntity.ok(jo.toString());
             }
         }
         if(!json.isNull("nip")){
@@ -53,13 +67,21 @@ public class WorkerController {
             if(principalRepository.existsByNip(nip)) {
                 principalRepository.deleteById(principalRepository.findByNip(nip).getId());
                 //principalRepository.deleteByNip(nip);
-                return ResponseEntity.ok("Success");
+                JSONObject jo = new JSONObject();
+                jo.put("success", true);
+                jo.put("status", "OK");
+
+                return ResponseEntity.ok(jo.toString());
             }
         }
-        return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
+        JSONObject jo = new JSONObject();
+        jo.put("success", false);
+        jo.put("status", "ERROR");
+        jo.put("message","NIE ZNALEZIONO");
+        return new ResponseEntity<>(jo.toString(), HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(path = "/find", method = RequestMethod.GET)
+    @RequestMapping(path = "/find", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> findPrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
@@ -69,6 +91,10 @@ public class WorkerController {
         if(!json.isNull("nip")){
             return ResponseEntity.ok(principalRepository.findByNip(json.getString("nip")));
         }
-        return new ResponseEntity<>("NOT_FOUND", HttpStatus.NOT_FOUND);
+        JSONObject jo = new JSONObject();
+        jo.put("success", false);
+        jo.put("status", "ERROR");
+        jo.put("message","NIE ZNALEZIONO");
+        return new ResponseEntity<>(jo.toString(), HttpStatus.NOT_FOUND);
     }
 }

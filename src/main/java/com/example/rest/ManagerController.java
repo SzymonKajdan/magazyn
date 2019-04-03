@@ -11,6 +11,7 @@ import com.example.service.UserService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class ManagerController {
     @Autowired
     UserService userService;
 
-    @RequestMapping(path = "/addUserAsWorker", method = RequestMethod.POST)
+    @RequestMapping(path = "/addUserAsWorker", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addUserAsWorker(@RequestBody User u) {
 
         if(!userRepository.existsByUsername(u.getUsername())) {
@@ -57,18 +58,25 @@ public class ManagerController {
             return ResponseEntity.ok(json.toString());
         }
 
-        return ResponseEntity.ok("USERNAME ALREADY EXISTS");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("success",false);
+        jsonObject.put("status","ERROR");
+        jsonObject.put("message","USERNAME ALREADY EXISTS");
+        return ResponseEntity.ok(jsonObject);
     }
 
-    @RequestMapping(path = "/deleteWorker", method = RequestMethod.DELETE)
+    @RequestMapping(path = "/deleteWorker", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deleteWorker(@RequestBody User u) {
 
         userService.delete(u);
 
-        return ResponseEntity.ok("SUCCESS");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("success",true);
+        jsonObject.put("status","SUCCESS");
+        return ResponseEntity.ok(jsonObject);
     }
 
-    @RequestMapping(path = "/workersList", method = RequestMethod.GET)
+    @RequestMapping(path = "/workersList", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> workersList() {
 
         Authority worker_a = authorityRepository.findByName(AuthorityName.ROLE_WORKER);
@@ -76,7 +84,7 @@ public class ManagerController {
         return ResponseEntity.ok(worker_a.getUsers());
     }
 
-    @RequestMapping(path = "/managersList", method = RequestMethod.GET)
+    @RequestMapping(path = "/managersList", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> managersList() {
 
         Authority manager_a = authorityRepository.findByName(AuthorityName.ROLE_MANAGER);

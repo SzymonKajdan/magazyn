@@ -5,6 +5,7 @@ import com.example.repository.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,14 +36,14 @@ public class SupplyController {
 
 
     //zwraca wszystkie zaopatrzenia wraz z tymi które już były
-    @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET)
+    @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> allSupply() {
         return (ResponseEntity.ok(supplyRepository.findAll()));
 
     }
 
     //Zwraca Wszytskie aktwyne zaopatrzenia
-    @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET)
+    @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getActiveSupplies() {
         return ResponseEntity.ok(supplyRepository.findByStatus(false));
     }
@@ -77,7 +78,7 @@ public class SupplyController {
     }
 
     //dodowanie nowego zaopatrzenia z storny internetowej
-    @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST)
+    @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addSupply(@RequestBody String supplyRequest) {
 
         Supply supply = supplyParser(supplyRequest);
@@ -95,7 +96,7 @@ public class SupplyController {
     }
 
     //Rozkaldanie zaopatrzenia
-    @RequestMapping(path = "/Supply/SpreadingGoods", method = RequestMethod.POST)
+    @RequestMapping(path = "/Supply/SpreadingGoods", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> SpreadingGoods(@RequestBody String supplyRequest) {
 
         JSONObject request = new JSONObject(supplyRequest);

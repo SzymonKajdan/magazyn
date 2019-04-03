@@ -52,7 +52,7 @@ public class OrderController {
         JSONObject json = new JSONObject(request);
         //HashMap<Long,Integer> productsMap = (HashMap<Long, Integer>) json.get("products");
 
-        System.out.println("Tutaj: "+json.getJSONArray("products"));
+        System.out.println("Tutaj: " + json.getJSONArray("products"));
 
         JSONArray productsJsonArray = json.getJSONArray("products");
 
@@ -60,7 +60,7 @@ public class OrderController {
         ArrayList<UsedProduct> usedProductArrayList = new ArrayList<>();
         ArrayList<StaticProduct> staticProductArrayList = new ArrayList<>();
 
-        for(int i=0; i<productsJsonArray.length();++i){
+        for (int i = 0; i < productsJsonArray.length(); ++i) {
 
             Long id = productsJsonArray.getJSONObject(i).getLong("id");
             int quantity = productsJsonArray.getJSONObject(i).getInt("quantity");
@@ -73,18 +73,17 @@ public class OrderController {
 
             usedProductArrayList.add(usedProduct);
 
-            price += staticProduct.getPrice()*quantity;
+            price += staticProduct.getPrice() * quantity;
 
-            if(staticProduct.getLogicState()-quantity>0) {
+            if (staticProduct.getLogicState() - quantity > 0) {
                 staticProduct.setLogicState(staticProduct.getLogicState() - quantity);
                 staticProductArrayList.add(staticProduct);
-            }
-            else
-            {
+            } else {
                 JSONObject jo = new JSONObject();
 
-                jo.put("success",false);
-                jo.put("message","BRAK_ILOSCI_PRODUKTU");
+                jo.put("success", false);
+                jo.put("status", "ERROR");
+                jo.put("message", "BRAK_ILOSCI_PRODUKTU");
 
                 return ResponseEntity.ok(jo.toString());
             }
@@ -113,38 +112,48 @@ public class OrderController {
             JSONArray ja = new JSONArray();
             double palletes = 0.0;
 
-            for(UsedProduct ud: usedProductArrayList){
+            for (UsedProduct ud : usedProductArrayList) {
                 JSONObject usedProductsJson = new JSONObject();
 
                 StaticProduct sp = staticProductRepository.getOne(ud.getIdStaticProduct());
 
-                usedProductsJson.put("productID",ud.getIdStaticProduct());
-                usedProductsJson.put("palletes",(double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette());
-                palletes += (double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette();
+                usedProductsJson.put("productID", ud.getIdStaticProduct());
+                usedProductsJson.put("palletes", (double) ud.getQuanitity() / (double) sp.getQuantityOnThePalette());
+                palletes += (double) ud.getQuanitity() / (double) sp.getQuantityOnThePalette();
 
                 ja.put(usedProductsJson);
             }
 
             JSONObject jo = new JSONObject();
 
-            jo.put("success",true);
+            jo.put("success", true);
             //jo.put("order",o);
-            jo.put("products",ja);
-            jo.put("palletes",palletes);
-            jo.put("id",o.getId());
+            jo.put("products", ja);
+            jo.put("palletes", palletes);
+            jo.put("id", o.getId());
 
             return ResponseEntity.ok(jo.toString());
 
 
         } catch (ClassCastException e) {
             username = "anonymousUser";
-            return ResponseEntity.ok("ERROR");
+
+            JSONObject jo = new JSONObject();
+
+            jo.put("success", false);
+            jo.put("status", "ERROR");
+            jo.put("message", "BLAD Z UZYTKOWNIKIEM");
         }
 //        catch (ParseException e) {
 //            e.printStackTrace();
 //        }
 
-        //return ResponseEntity.ok("ERROR");
+        JSONObject jo = new JSONObject();
+
+        jo.put("success", false);
+        jo.put("status", "ERROR");
+        jo.put("message", "BLAD NIEZNANY");
+        return ResponseEntity.ok(jo.toString());
     }
 
     @RequestMapping(path = "/complete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -195,7 +204,12 @@ public class OrderController {
                 productIdWithQuantityMap.remove(staticProductID);
             }
             else if(productIdWithQuantityMap.get(staticProductID).getQuantity()<0){
-                System.out.println("ERROR");
+
+                JSONObject jo2 = new JSONObject();
+
+                jo2.put("success",false);
+                jo2.put("status","ERROR");
+                jo2.put("message","BLAD Z ILOSCIA PRODUKTU");
             }
 
             p.setState(p.getState()-quantiy);
@@ -209,12 +223,14 @@ public class OrderController {
             //System.out.println("XDDDDDDDDDDDDD");
 
             returnJson.put("success",true);
+            returnJson.put("status","OK");
 
             return ResponseEntity.ok(returnJson.toString());
 
         }
         else{
             returnJson.put("success",false);
+            returnJson.put("status","ERROR");
             returnJson.put("message","PRODUKTY_SIE_NIE_ZGADZAJA");
             return ResponseEntity.ok(returnJson.toString());
         }
@@ -234,6 +250,7 @@ public class OrderController {
         orderRepository.save(o);
 
         returnJson.put("success", true);
+        returnJson.put("status", "OK");
         return ResponseEntity.ok(returnJson.toString());
     }
 }

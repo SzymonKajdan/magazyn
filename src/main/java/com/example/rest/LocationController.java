@@ -7,6 +7,7 @@ import com.example.repository.StaticProductRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,7 +27,7 @@ public class LocationController {
     @Autowired
     ProductController productController;
 
-    @RequestMapping(path = "/infoAboutLocation", method = RequestMethod.POST)
+    @RequestMapping(path = "/infoAboutLocation", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> infoAboutLocation(@RequestBody  String location) {
         JSONObject jsonObjectLocation = new JSONObject(location);
         Location locationFromRequest = locationParserOneLocation(jsonObjectLocation.toString());

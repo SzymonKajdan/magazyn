@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,7 @@ public class StaticProductController {
     ProductRepository productRepository;
 
 
-    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllProducts() {
         List<StaticProduct> allProducts = staticProductRepository.findAll();
         JSONArray jsonArray = new JSONArray();
@@ -61,7 +62,7 @@ public class StaticProductController {
     }
 
 
-    @RequestMapping(path = "/getInfoAboutProduct", method = RequestMethod.POST)
+    @RequestMapping(path = "/getInfoAboutProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getInfoAboutProduct(@RequestBody String barcode) throws JsonProcessingException {
         System.out.println("json" +barcode);
         JSONObject js = new JSONObject(barcode);
@@ -91,7 +92,7 @@ public class StaticProductController {
 
 
     }
-    @RequestMapping(path = "/test", method = RequestMethod.POST)
+    @RequestMapping(path = "/test", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> test(@RequestBody String test) {
         JSONObject js=new JSONObject(test);
         Long id=js.getLong("id");
@@ -121,7 +122,7 @@ public class StaticProductController {
 
     }
 
-    @RequestMapping(path = "/changeLocationOfTheProduct", method = RequestMethod.POST)
+    @RequestMapping(path = "/changeLocationOfTheProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> changeLocationOfTheProduct(@RequestBody String newLocation) {
         JSONObject js = new JSONObject(newLocation);
 
@@ -136,7 +137,7 @@ public class StaticProductController {
         return ResponseEntity.ok("ok");
     }
 
-    @RequestMapping(path = "/addNewProduct", method = RequestMethod.POST)
+    @RequestMapping(path = "/addNewProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addNewProduct(@RequestBody String newProduct) {
         StaticProduct staticProduct = staticProductParser(newProduct);
         String barCode = staticProduct.getBarCode();
@@ -152,7 +153,7 @@ public class StaticProductController {
 
     }
 
-    @RequestMapping(path = "/findAllProducts", method = RequestMethod.GET)
+    @RequestMapping(path = "/findAllProducts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> findAllProducts() {
         List<StaticProduct> allProducts = staticProductRepository.findAll();
         JSONArray jsonArray = new JSONArray();
