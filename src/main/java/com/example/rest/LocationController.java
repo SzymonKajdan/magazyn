@@ -52,6 +52,7 @@ public class LocationController {
         for (Product product : location.getProducts()) {
             JSONObject object = new JSONObject();
             JSONObject staticIfno = new JSONObject();
+            JSONObject staticLocation =new JSONObject();
             staticIfno.put("price", product.getStaticProduct().getPrice());
             staticIfno.put("id", product.getStaticProduct().getId());
             staticIfno.put("quantityOnThePalette", product.getStaticProduct().getQuantityOnThePalette());
@@ -60,11 +61,12 @@ public class LocationController {
             staticIfno.put("name", product.getStaticProduct().getName());
             staticIfno.put("logicState", product.getStaticProduct().getLogicState());
             staticIfno.put("amountInPack",product.getStaticProduct().getAmountInAPack());
-            staticIfno.put("staticLocations", product.getStaticProduct().getStaticLocation());
+            staticLocation.put("barCodeLocation",product.getStaticProduct().getStaticLocation().getBarCodeLocation());
+            staticIfno.put("staticLocations", staticLocation);
             object.put("id", product.getId());
             object.put("exprDate", product.getExprDate());
             object.put("state", product.getState());
-            object.put("staticPorduct", staticIfno);
+            object.put("staticProduct", staticIfno);
             jsonArrayWihtProductsInLocation.put(object);
         }
         jsonObject.put("products", jsonArrayWihtProductsInLocation);

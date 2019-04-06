@@ -154,7 +154,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 staticProductRepository.save(staticProduct);
 
             }
-
+            Principal principal=new Principal();
+            principal.setNip("124455667");
+            principal.setPhoneNo("790540834");
+            principalRepository.save(principal);
             /*
             UsedProduct up1 = new UsedProduct();
             up1.setIdStaticProduct(sp1.getId());
