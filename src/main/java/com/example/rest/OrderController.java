@@ -94,16 +94,20 @@ public class OrderController {
         System.out.println(usedProduct.getId() + " " + usedProduct.getQuanitity());
         StaticProduct product = staticProductRepository.getOne(usedProduct.getIdStaticProduct());
         JSONObject jsonToReturn= new JSONObject();
+
         JSONObject productJSON = new JSONObject();
         productJSON.put("id", product.getId());
         productJSON.put("name", product.getName());
         productJSON.put("producer", product.getProducer());
         productJSON.put("barCode", product.getBarCode());
+
         JSONObject location = new JSONObject();
         location.put("id", product.getStaticLocation().getId());
         location.put("barCodeLocation", product.getStaticLocation().getBarCodeLocation());
+
         productJSON.put("location", location);
         productJSON.put("quantityInPackage", product.getAmountInAPack());
+
         jsonToReturn.put("product",productJSON);
         jsonToReturn.put("quantity",usedProduct.getQuanitity());
         return jsonToReturn;
