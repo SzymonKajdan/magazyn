@@ -198,6 +198,7 @@ public class StaticProductController {
         jsonObject.put("exprDate", product.getExprDate());
         jsonObject.put("state", product.getState());
         jsonObject.put("locations", product.getLocations());
+
         return jsonObject;
     }
 
