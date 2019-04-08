@@ -118,7 +118,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 staticLocationRepository.save(staticLocation);
 
                 Random r = new Random();
-                double randomValue = 0.50 + (5.0 - 0.50) * r.nextDouble();
+                double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
 
                 StaticProduct staticProduct=new StaticProduct();
                 staticProduct.setName(strings.get(1));
@@ -161,39 +161,44 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             principal.setCompanyName("Firma1");
             principal.setZipCode("32-340");
             principalRepository.save(principal);
-            /*
+
+
+
+            StaticProduct sp1=staticProductRepository.findByBarCode("1655409103");
+
+
+
+
             UsedProduct up1 = new UsedProduct();
             up1.setIdStaticProduct(sp1.getId());
-            up1.setPicked(true);
-            up1.setQuanitity(10);
+            up1.setPicked(false);
+            up1.setQuanitity(100);
 
             // ze statica usuwamy z logicstate zeby wiedziec ile zostało niezamowionych produktow
-            sp1.setLogicState(sp1.getLogicState()-10);
+            sp1.setLogicState(sp1.getLogicState()-100);
 
             Order o1 = new Order();
-            o1.setPrincipal(pr1);
-            try {
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-                o1.setDate(formatter.parse("2019-05-05"));
-                o1.setDepartureDate(formatter.parse("2019-05-05"));
-                o1.setEndDate(formatter.parse("2019-05-05"));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            o1.setPrice(sp1.getPrice());
+            o1.setPrincipal(principal);
+
+
+
+                DateTime dateTime = new DateTime().withHourOfDay(8);
+                dateTime = dateTime.plusDays(2);
+
+                o1.setDepartureDate(dateTime.toDate());
+
+
+
+            o1.setPrice(sp1.getPrice()*100);
             o1.setUser(user);
             o1.setUsedProductList(new ArrayList<>(Arrays.asList(up1)));
 
             usedProductRepository.save(up1);
             orderRepository.save(o1);
-
+            System.out.println(o1.getId());
             // kompletowanie zamowienia
 
-            // pracownik pobiera liste produktow i wybiera
-            sp1.getProducts();
 
-            // po tym co wybierze usuwa sie ze stanu produktu
-            p1.setState(p1.getState()-10);*/
 
         }
 
