@@ -225,6 +225,7 @@ public class StaticProductController {
     public ResponseEntity<?> addNewProduct(@RequestBody String newProduct) {
         StaticProduct staticProduct = staticProductParser(newProduct);
         String barCode = staticProduct.getBarCode();
+        staticProduct.setProducts(new ArrayList<>());
         if (staticProductRepository.findByBarCode(barCode) == null) {
             System.out.println(staticProduct.getStaticLocation().getBarCodeLocation());
             StaticLocation staticLocation = staticLocationRepository.findByBarCodeLocation(staticProduct.getStaticLocation().getBarCodeLocation());
@@ -234,18 +235,6 @@ public class StaticProductController {
                 staticProduct.setStaticLocation(staticLocation);
             }
 
-            staticProduct.setProducts(new ArrayList<>());
-            StaticLocation staticLocation=staticLocationRepository.findByBarCodeLocation(staticProduct.getStaticLocation().getBarCodeLocation());
-            if(staticLocation==null){
-                StaticLocation staticLocatiionToSave=staticProduct.getStaticLocation();
-                staticLocationRepository.save(staticLocatiionToSave);
-                staticProductRepository.save(staticProduct);
-            }
-            else {
-
-                staticProduct.setStaticLocation(staticLocation);
-                staticProductRepository.save(staticProduct);
-            }
 
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").put("Id", staticProduct.getId()).toString());
         } else {
