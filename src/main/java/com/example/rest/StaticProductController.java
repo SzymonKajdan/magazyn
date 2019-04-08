@@ -2,9 +2,11 @@ package com.example.rest;
 
 import com.example.model.Location;
 import com.example.model.Product;
+import com.example.model.StaticLocation;
 import com.example.model.StaticProduct;
 import com.example.repository.LocationRepository;
 import com.example.repository.ProductRepository;
+import com.example.repository.StaticLocationRepository;
 import com.example.repository.StaticProductRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,8 @@ public class StaticProductController {
     LocationRepository locationRepository;
     @Autowired
     ProductRepository productRepository;
+    @Autowired
+    StaticLocationRepository staticLocationRepository;
 
 
     @RequestMapping(path = "/findAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -143,9 +147,18 @@ public class StaticProductController {
         String barCode = staticProduct.getBarCode();
         if (staticProductRepository.findByBarCode(barCode) == null) {
             staticProduct.setProducts(new ArrayList<>());
+            StaticLocation staticLocation=staticLocationRepository.findByBarCodeLocation(staticProduct.getStaticLocation().getBarCodeLocation());
+            if(staticLocation==null){
+                StaticLocation staticLocatiionToSave=staticProduct.getStaticLocation();
+                staticLocationRepository.save(staticLocatiionToSave);
+                staticProductRepository.save(staticProduct);
+            }
+            else {
 
+                staticProduct.setStaticLocation(staticLocation);
+                staticProductRepository.save(staticProduct);
+            }
 
-            staticProductRepository.save(staticProduct);
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").put("Id", staticProduct.getId()).toString());
         } else {
             return ResponseEntity.ok(new JSONObject().put("Status", "ProductAlredyExist").toString());
