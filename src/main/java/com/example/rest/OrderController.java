@@ -93,18 +93,24 @@ public class OrderController {
     private JSONObject addProductsToOrder(UsedProduct usedProduct) {
         System.out.println(usedProduct.getId() + " " + usedProduct.getQuanitity());
         StaticProduct product = staticProductRepository.getOne(usedProduct.getIdStaticProduct());
+        JSONObject jsonToReturn= new JSONObject();
+
         JSONObject productJSON = new JSONObject();
         productJSON.put("id", product.getId());
         productJSON.put("name", product.getName());
         productJSON.put("producer", product.getProducer());
         productJSON.put("barCode", product.getBarCode());
+
         JSONObject location = new JSONObject();
         location.put("id", product.getStaticLocation().getId());
         location.put("barCodeLocation", product.getStaticLocation().getBarCodeLocation());
-        productJSON.put("location", location);
+
+        productJSON.put("staticLocation", location);
         productJSON.put("quantityInPackage", product.getAmountInAPack());
-        productJSON.put("quantity", new JSONObject().put("quantity",usedProduct.getQuanitity()));
-        return productJSON;
+
+        jsonToReturn.put("product",productJSON);
+        jsonToReturn.put("quantity",usedProduct.getQuanitity());
+        return jsonToReturn;
     }
 
     private JSONObject orderToJSON(Order order) {
@@ -152,7 +158,7 @@ public class OrderController {
         //HashMap<Long,Integer> productsMap = (HashMap<Long, Integer>) json.get("products");
 
         System.out.println("Tutaj: " + json.getJSONArray("products"));
-
+        System.out.println("tutaj"+json.get("principalID"));
         JSONArray productsJsonArray = json.getJSONArray("products");
 
         double price = 0.0;

@@ -2,6 +2,7 @@ package com.example.rest;
 
 import com.example.model.*;
 import com.example.repository.*;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class SupplyController {
 
         Supply supply = supplyParser(supplyRequest);
         saveUsedProduct(supply.getPalettes());
-        supply.setArriveDate(new Date());
+        supply.setArriveDate(new DateTime().plusDays(4).toDate());
 
         paletteRepository.saveAll(supply.getPalettes());
         supplyRepository.save(supply);

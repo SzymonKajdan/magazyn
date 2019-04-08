@@ -2,9 +2,11 @@ package com.example.rest;
 
 import com.example.model.Location;
 import com.example.model.Product;
+import com.example.model.StaticLocation;
 import com.example.model.StaticProduct;
 import com.example.repository.LocationRepository;
 import com.example.repository.ProductRepository;
+import com.example.repository.StaticLocationRepository;
 import com.example.repository.StaticProductRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.parsers.LocationParser.locationParserOneLocation;
 import static com.example.parsers.StaticPorductPraser.staticProductParser;
+
 @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 @RequestMapping("/Product")
@@ -31,6 +35,8 @@ public class StaticProductController {
     LocationRepository locationRepository;
     @Autowired
     ProductRepository productRepository;
+    @Autowired
+    StaticLocationRepository staticLocationRepository;
 
 
     @RequestMapping(path = "/findAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -64,7 +70,7 @@ public class StaticProductController {
 
     @RequestMapping(path = "/getInfoAboutProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getInfoAboutProduct(@RequestBody String barcode) throws JsonProcessingException {
-        System.out.println("json" +barcode);
+        System.out.println("json" + barcode);
         JSONObject js = new JSONObject(barcode);
 
 
@@ -92,10 +98,11 @@ public class StaticProductController {
 
 
     }
+
     @RequestMapping(path = "/test", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> test(@RequestBody String test) {
-        JSONObject js=new JSONObject(test);
-        Long id=js.getLong("id");
+        JSONObject js = new JSONObject(test);
+        Long id = js.getLong("id");
         if (id != 0) {
             StaticProduct staticProduct = staticProductRepository.getOne(id);
 
@@ -127,14 +134,91 @@ public class StaticProductController {
         JSONObject js = new JSONObject(newLocation);
 
         Location location = locationParserOneLocation(js.get("location").toString());
-        Location lcotionToUpdate = locationRepository.findByBarCodeLocation(location.getBarCodeLocation());
+        Location locationToUpdate = locationRepository.findByBarCodeLocation(location.getBarCodeLocation());
 
-        String oldLocation = locationParserOneLocation(js.get("oldLocation").toString()).getBarCodeLocation();
 
-        addProductToLocation(lcotionToUpdate, location.getProducts(), oldLocation);
-        locationRepository.save(lcotionToUpdate);
+        String oldLocationBarCode = locationParserOneLocation(js.get("oldLocation").toString()).getBarCodeLocation();
+        Location oldLocation = locationRepository.findByBarCodeLocation(oldLocationBarCode);
+        addToStack(locationToUpdate, location, oldLocation);
 
-        return ResponseEntity.ok("ok");
+
+        locationRepository.save(locationToUpdate);
+
+        return ResponseEntity.ok(new JSONObject().put("status","changed"));
+    }
+
+
+    private void removeStateFromOldLocation(Product product, int state) {
+        product.setState(product.getState() - state);
+        if (product.getState() == 0) {
+
+            StaticProduct st = staticProductRepository.findByBarCode(product.getStaticProduct().getBarCode());
+            st.getProducts().remove(product);
+            staticProductRepository.save(st);
+            productRepository.delete(product);
+
+        } else {
+            productRepository.save(product);
+        }
+
+    }
+
+    private Product createProductWithInfo(Product product, int state) {
+        Product p = new Product();
+        p.setStaticProduct(product.getStaticProduct());
+        p.setExprDate(product.getExprDate());
+        p.setState(state);
+        return p;
+
+    }
+
+    private void addToStack(Location locationToUpdate, Location location, Location oldLocation) {
+
+        try {
+            for (Product product : location.getProducts()) {
+
+                Product productInNewLocation = locationToUpdate.getProducts().stream().filter(
+                        x -> x.getStaticProduct().getBarCode().equals(product.getStaticProduct().getBarCode())).filter(
+                        x -> x.getExprDate().equals(productRepository.getProductById(product.getId()).getExprDate()))
+                        .findFirst().orElse(null);
+
+
+                Product productInDB = oldLocation.getProducts().stream()
+                        .filter(x -> x.getId().equals(product.getId())).findFirst().get();
+                if (productInDB != null) {
+
+                    int state = product.getState();
+
+                    if (productInNewLocation != null) {
+                        productInNewLocation.setState(productInNewLocation.getState() + state);
+                        removeStateFromOldLocation(productRepository.getOne(product.getId()), state);
+                        productRepository.save(productInNewLocation);
+                    } else {
+                        Product toSave = createProductWithInfo(productInDB, state);
+                        productRepository.save(toSave);
+                        removeStateFromOldLocation(productRepository.getOne(product.getId()), state);
+
+
+                        locationToUpdate.getProducts().add(toSave);
+                        locationRepository.save(locationToUpdate);
+
+
+                        toSave.setLocations(new ArrayList<>());
+                        toSave.getLocations().add(locationToUpdate);
+                        productRepository.save(toSave);
+
+
+                        StaticProduct staticProduct = staticProductRepository.findByBarCode(toSave.getStaticProduct().getBarCode());
+                        staticProduct.getProducts().add(toSave);
+                        staticProductRepository.save(staticProduct);
+                    }
+                }
+
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Exception", e);
+        }
     }
 
     @RequestMapping(path = "/addNewProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -142,6 +226,14 @@ public class StaticProductController {
         StaticProduct staticProduct = staticProductParser(newProduct);
         String barCode = staticProduct.getBarCode();
         if (staticProductRepository.findByBarCode(barCode) == null) {
+            System.out.println(staticProduct.getStaticLocation().getBarCodeLocation());
+            StaticLocation staticLocation = staticLocationRepository.findByBarCodeLocation(staticProduct.getStaticLocation().getBarCodeLocation());
+            if (staticLocation == null) {
+                staticLocationRepository.save(staticProduct.getStaticLocation());
+            } else {
+                staticProduct.setStaticLocation(staticLocation);
+            }
+
             staticProduct.setProducts(new ArrayList<>());
 
 
@@ -203,45 +295,5 @@ public class StaticProductController {
         return jsonObject;
     }
 
-    private void addProductToLocation(Location lcotionToUpdate, List<Product> products, String oldLocation) {
-        for (Product productToAdd : products) {
-            boolean ischange = false;
-            for (Product product : lcotionToUpdate.getProducts()) {
-                if (product.getStaticProduct().getBarCode().equals(productToAdd.getStaticProduct().getBarCode()) && product.getExprDate().equals(productToAdd.getExprDate())) {
-                    product.setState(product.getState() + productToAdd.getState());
-                    changeOldLocationProducts(oldLocation, productToAdd, product);
-                    ischange = true;
-
-
-                }
-            }
-            if (ischange == false) {
-                Product productToSave = new Product();
-                productToSave.setState(productToAdd.getState());
-                productToSave.setExprDate(productToAdd.getExprDate());
-                productToSave.setStaticProduct(staticProductRepository.findByBarCode(productToAdd.getStaticProduct().getBarCode()));
-                changeOldLocationProducts(oldLocation, productToAdd, productToSave);
-                ischange = true;
-            }
-        }
-    }
-
-    private void changeOldLocationProducts(String oldLocation, Product productToAdd, Product productToSave) {
-        productRepository.save(productToSave);
-        Location oldLoc = locationRepository.findByBarCodeLocation(oldLocation);
-        for (Product oldStaeProduct : oldLoc.getProducts()) {
-            if (oldStaeProduct.getId().equals(productToAdd.getId())) {
-                oldStaeProduct.setState(oldStaeProduct.getState() - productToAdd.getState());
-                if (oldStaeProduct.getState() == 0) {
-                    oldLoc.getProducts().remove(productRepository.getOne(productToAdd.getId()));
-                    StaticProduct staticProduct = staticProductRepository.findByBarCode(productToAdd.getStaticProduct().getBarCode());
-                    staticProduct.getProducts().remove(productRepository.getOne(productToAdd.getId()));
-                    productRepository.delete(productRepository.getOne(productToAdd.getId()));
-                    locationRepository.save(oldLoc);
-                }
-            }
-
-        }
-    }
 
 }
