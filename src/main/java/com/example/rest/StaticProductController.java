@@ -144,7 +144,7 @@ public class StaticProductController {
 
         locationRepository.save(locationToUpdate);
 
-        return ResponseEntity.ok(new JSONObject().put("status","changed"));
+        return ResponseEntity.ok(new JSONObject().put("status","changed").toString());
     }
 
 

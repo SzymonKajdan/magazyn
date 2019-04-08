@@ -154,6 +154,8 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 staticProductRepository.save(staticProduct);
 
             }
+
+
             Principal principal=new Principal();
             principal.setNip("124455667");
             principal.setPhoneNo("790540834");
@@ -182,10 +184,10 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
 
 
-            DateTime dateTime = new DateTime().withHourOfDay(8);
-            dateTime = dateTime.plusDays(2);
+                DateTime dateTime = new DateTime().withHourOfDay(8);
+                dateTime = dateTime.plusDays(2);
 
-            o1.setDepartureDate(dateTime.toDate());
+                o1.setDepartureDate(dateTime.toDate());
 
 
 
@@ -196,7 +198,6 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             usedProductRepository.save(up1);
             orderRepository.save(o1);
             System.out.println(o1.getId());
-            // kompletowanie zamowienia
 
 
 
