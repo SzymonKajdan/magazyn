@@ -105,7 +105,7 @@ public class OrderController {
         location.put("id", product.getStaticLocation().getId());
         location.put("barCodeLocation", product.getStaticLocation().getBarCodeLocation());
 
-        productJSON.put("location", location);
+        productJSON.put("staticLocation", location);
         productJSON.put("quantityInPackage", product.getAmountInAPack());
 
         jsonToReturn.put("product",productJSON);
