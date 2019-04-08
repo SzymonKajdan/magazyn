@@ -1,6 +1,7 @@
 package com.example.model;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -30,8 +31,9 @@ public class StaticProduct {
 
     private String producer;
 
-    @Column(name = "BARCODE", length = 100)
+    @Column(name = "BARCODE", length = 100,unique = true)
     @NotNull
+
     @Size(min = 4, max = 100)
     private String barCode;
 

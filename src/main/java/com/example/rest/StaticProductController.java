@@ -235,9 +235,18 @@ public class StaticProductController {
             }
 
             staticProduct.setProducts(new ArrayList<>());
+            StaticLocation staticLocation=staticLocationRepository.findByBarCodeLocation(staticProduct.getStaticLocation().getBarCodeLocation());
+            if(staticLocation==null){
+                StaticLocation staticLocatiionToSave=staticProduct.getStaticLocation();
+                staticLocationRepository.save(staticLocatiionToSave);
+                staticProductRepository.save(staticProduct);
+            }
+            else {
 
+                staticProduct.setStaticLocation(staticLocation);
+                staticProductRepository.save(staticProduct);
+            }
 
-            staticProductRepository.save(staticProduct);
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").put("Id", staticProduct.getId()).toString());
         } else {
             return ResponseEntity.ok(new JSONObject().put("Status", "ProductAlredyExist").toString());
