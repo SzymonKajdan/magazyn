@@ -65,7 +65,7 @@ public class ManagerController {
         return ResponseEntity.ok(jsonObject);
     }
 
-    @RequestMapping(path = "/deleteWorker", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(path = "/deleteWorker", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deleteWorker(@RequestBody User u) {
 
         userService.delete(u);

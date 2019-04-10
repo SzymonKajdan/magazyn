@@ -26,7 +26,7 @@ public class WorkerController {
         return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
     }
 
-    @RequestMapping(path = "/add", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(path = "/add", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addPrincipal(@RequestBody Principal p) {
 
         if(!principalRepository.existsByNip(p.getNip())) {
@@ -46,7 +46,7 @@ public class WorkerController {
         }
     }
 
-    @RequestMapping(path = "/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(path = "/delete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
         JSONObject json = new JSONObject(s);
