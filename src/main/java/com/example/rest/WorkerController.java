@@ -21,9 +21,29 @@ public class WorkerController {
         return ResponseEntity.ok(principalRepository.findAll());
     }
 
+    @RequestMapping(path = "/findAllActive", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getAllActivePrincipals() {
+        return ResponseEntity.ok(principalRepository.findAllByEnabled(true));
+    }
+
+    @RequestMapping(path = "/findAllDisactive", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getAllDisactivePrincipals() {
+        return ResponseEntity.ok(principalRepository.findAllByEnabled(false));
+    }
+
     @RequestMapping(path = "/findAllByOrderByCompanyName", method = RequestMethod.GET)
     public ResponseEntity<?> getAllPrincipalsOrderByBrand() {
         return ResponseEntity.ok(principalRepository.findAllByOrderByCompanyName());
+    }
+
+    @RequestMapping(path = "/findAllActiveByOrderByCompanyName", method = RequestMethod.GET)
+    public ResponseEntity<?> getAllActivePrincipalsOrderByBrand() {
+        return ResponseEntity.ok(principalRepository.findAllByEnabledOrderByCompanyName(true));
+    }
+
+    @RequestMapping(path = "/findAllDisactiveByOrderByCompanyName", method = RequestMethod.GET)
+    public ResponseEntity<?> getAllDisactivePrincipalsOrderByBrand() {
+        return ResponseEntity.ok(principalRepository.findAllByEnabledOrderByCompanyName(false));
     }
 
     @RequestMapping(path = "/add", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -47,6 +67,41 @@ public class WorkerController {
         }
     }
 
+    @RequestMapping(path = "/edit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> editPrincipal(@RequestBody Principal p) {
+
+        JSONObject jo = new JSONObject();
+        if(p.getId()!=null) {
+            if (principalRepository.existsById(p.getId())) {
+
+                if (p.getNip().isEmpty()) {
+                    jo.put("success", false);
+                    jo.put("status", "ERROR");
+                    jo.put("message", "BRAK NIPU");
+                    return new ResponseEntity<>(jo.toString(), HttpStatus.CONFLICT);
+                }
+
+                principalRepository.save(p);
+
+                jo.put("success", true);
+                jo.put("status", "OK");
+                return ResponseEntity.ok(jo.toString());
+            } else {
+
+                jo.put("success", false);
+                jo.put("status", "ERROR");
+                jo.put("message", "TAKI KLIENT NIE ISTNIEJE");
+                return new ResponseEntity<>(jo.toString(), HttpStatus.CONFLICT);
+            }
+        }
+
+        jo.put("success", false);
+        jo.put("status", "ERROR");
+        jo.put("message", "POLE ID JEST PUSTE");
+        return new ResponseEntity<>(jo.toString(), HttpStatus.CONFLICT);
+    }
+
+
     @RequestMapping(path = "/delete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deletePrincipal(@RequestBody String s) {
 
@@ -54,7 +109,11 @@ public class WorkerController {
         if(!json.isNull("id")) {
             long id = json.getLong("id");
             if(principalRepository.existsById(id)) {
-                principalRepository.deleteById(id);
+                //principalRepository.deleteById(id);
+
+                Principal p = principalRepository.findById(id).get();
+                p.setEnabled(false);
+                principalRepository.save(p);
 
                 JSONObject jo = new JSONObject();
                 jo.put("success", true);
@@ -66,8 +125,13 @@ public class WorkerController {
         if(!json.isNull("nip")){
             String nip = json.getString("nip");
             if(principalRepository.existsByNip(nip)) {
-                principalRepository.deleteById(principalRepository.findByNip(nip).getId());
+                //principalRepository.deleteById(principalRepository.findByNip(nip).getId());
                 //principalRepository.deleteByNip(nip);
+
+                Principal p = principalRepository.findByNip(nip);
+                p.setEnabled(false);
+                principalRepository.save(p);
+
                 JSONObject jo = new JSONObject();
                 jo.put("success", true);
                 jo.put("status", "OK");

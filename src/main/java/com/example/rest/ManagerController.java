@@ -68,12 +68,28 @@ public class ManagerController {
     @RequestMapping(path = "/deleteWorker", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> deleteWorker(@RequestBody User u) {
 
-        userService.delete(u);
+        //userService.delete(u);
 
         JSONObject jsonObject = new JSONObject();
+
+        User user = null;
+        if(u.getId()!=null)
+            user = userRepository.findById(u.getId()).get();
+        else if(u.getUsername()!=null)
+            user = userRepository.findByUsername(u.getUsername());
+        else {
+            jsonObject.put("success",false);
+            jsonObject.put("status","ERROR");
+            jsonObject.put("message","NIE PODANO id ANI username");
+            return ResponseEntity.ok(jsonObject.toString());
+        }
+
+        user.setEnabled(false);
+        userRepository.save(user);
+
         jsonObject.put("success",true);
         jsonObject.put("status","SUCCESS");
-        return ResponseEntity.ok(jsonObject);
+        return ResponseEntity.ok(jsonObject.toString());
     }
 
     @RequestMapping(path = "/workersList", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

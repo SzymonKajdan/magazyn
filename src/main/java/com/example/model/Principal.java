@@ -1,5 +1,7 @@
 package com.example.model;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -36,9 +38,9 @@ public class Principal {
     @Size(min = 4, max = 50)
     private String phoneNo;
 
-    @Column(name = "ENABLED")
-    @NotNull
-    private Boolean enabled;
+    @Column(name = "ENABLED")//, columnDefinition = "BOOLEAN DEFAULT true")
+    //@ColumnDefault(value = "1")
+    private Boolean enabled = true;
 
     public Long getId() {
         return id;
@@ -87,8 +89,6 @@ public class Principal {
     public void setPhoneNo(String phoneNo) {
         this.phoneNo = phoneNo;
     }
-
-
 
     public Boolean getEnabled() {
         return enabled;
