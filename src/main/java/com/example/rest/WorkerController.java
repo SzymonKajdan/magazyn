@@ -35,6 +35,7 @@ public class WorkerController {
 
             jo.put("success", true);
             jo.put("status", "OK");
+            jo.put("id",p.getId());
             return ResponseEntity.ok(jo.toString());
         }
         else{

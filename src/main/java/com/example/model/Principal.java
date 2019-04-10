@@ -36,6 +36,10 @@ public class Principal {
     @Size(min = 4, max = 50)
     private String phoneNo;
 
+    @Column(name = "ENABLED")
+    @NotNull
+    private Boolean enabled;
+
     public Long getId() {
         return id;
     }
@@ -82,5 +86,15 @@ public class Principal {
 
     public void setPhoneNo(String phoneNo) {
         this.phoneNo = phoneNo;
+    }
+
+
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }
