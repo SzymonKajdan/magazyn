@@ -111,7 +111,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-
+            int i =0;
             for(List<String> strings:records){
                 StaticLocation staticLocation=new StaticLocation();
                 staticLocation.setBarCodeLocation(strings.get(2));
@@ -150,10 +150,28 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 product.setLocations(new ArrayList<Location>(Arrays.asList(location)));
                 productRepository.save(product);
 
+                if(i==0){
+                    Product p=new Product();
+                    p.setState(200);
+                    p.setExprDate(new Date());
+                    staticProduct.setLogicState(staticProduct.getLogicState() +  p.getState());
+
+                    p.setStaticProduct(staticProduct);
+                    p.setLocations(new ArrayList<>(Arrays.asList(location)));
+
+                    productRepository.save(p);
+                    staticProduct.getProducts().add(p);
+                    i++;
+                }
+
                 staticProduct.getProducts().add(product);
+
                 staticProductRepository.save(staticProduct);
 
             }
+
+
+
 
 
             Principal principal=new Principal();
@@ -162,6 +180,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             principal.setAddress("adres 1");
             principal.setCompanyName("Firma1");
             principal.setZipCode("32-340");
+            principal.setEnabled(true);
             principalRepository.save(principal);
 
 

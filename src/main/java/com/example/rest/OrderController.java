@@ -39,7 +39,23 @@ public class OrderController {
     @RequestMapping(path = "/findAllOrderByDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
         List<Order> orders = orderRepository.findAllByOrderByDate();
-        return ResponseEntity.ok(createJsonArrayOfOrders(orders));
+
+        JSONArray jsonArrayOrders=new JSONArray();
+        for(Order order:orders){
+            JSONArray products = new JSONArray();
+
+            JSONObject orderObject = orderToJSON(order);
+            for (UsedProduct usedProduct : order.getUsedProductList()) {
+
+                products.put(addProductsToOrder(usedProduct));
+
+            }
+            orderObject.put("products", products);
+            jsonArrayOrders.put(orderObject);
+
+        }
+
+        return ResponseEntity.ok(jsonArrayOrders.toString());
 
     }
 

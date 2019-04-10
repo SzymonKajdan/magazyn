@@ -144,7 +144,7 @@ public class StaticProductController {
 
         locationRepository.save(locationToUpdate);
 
-        return ResponseEntity.ok(new JSONObject().put("status","changed").toString());
+        return ResponseEntity.ok(new JSONObject().put("status", "changed").toString());
     }
 
 
@@ -220,6 +220,38 @@ public class StaticProductController {
             throw new RuntimeException("Exception", e);
         }
     }
+
+    @RequestMapping(path = "/editProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> editProduct(@RequestBody String productToEditString) {
+        JSONObject productToEditJson = new JSONObject(productToEditString);
+
+        StaticProduct staticProductWithInfo = staticProductParser(productToEditJson.toString());
+        String barCode=staticProductWithInfo.getBarCode();
+
+        StaticProduct staticProductToEdit=staticProductRepository.findByBarCode(barCode);
+
+        chcangeInfoAboutProduct(staticProductToEdit,staticProductWithInfo);
+        staticProductRepository.save(staticProductToEdit);
+
+        JSONObject reposneJson=new JSONObject();
+        reposneJson.put("Status","Succes");
+        return ResponseEntity.ok(reposneJson.toString());
+
+
+
+    }
+
+    private void chcangeInfoAboutProduct(StaticProduct staticProductToEdit,StaticProduct porductWithInfo) {
+        staticProductToEdit.setName(porductWithInfo.getName());
+        staticProductToEdit.setPrice(porductWithInfo.getPrice());
+        staticProductToEdit.setBarCode(porductWithInfo.getBarCode());
+        staticProductToEdit.setProducer(porductWithInfo.getProducer());
+        staticProductToEdit.setAmountInAPack(porductWithInfo.getAmountInAPack());
+        staticProductToEdit.setQuantityOnThePalette(porductWithInfo.getQuantityOnThePalette());
+        staticProductToEdit.setStaticLocation(porductWithInfo.getStaticLocation());
+
+    }
+
 
     @RequestMapping(path = "/addNewProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addNewProduct(@RequestBody String newProduct) {
