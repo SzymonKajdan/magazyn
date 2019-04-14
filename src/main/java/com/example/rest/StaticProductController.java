@@ -99,35 +99,6 @@ public class StaticProductController {
 
     }
 
-    @RequestMapping(path = "/test", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> test(@RequestBody String test) {
-        JSONObject js = new JSONObject(test);
-        Long id = js.getLong("id");
-        if (id != 0) {
-            StaticProduct staticProduct = staticProductRepository.getOne(id);
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("id", staticProduct.getId());
-            jsonObject.put("price", staticProduct.getPrice());
-            jsonObject.put("quantityOnThePalette", staticProduct.getQuantityOnThePalette());
-            jsonObject.put("quantityInPackage", staticProduct.getAmountInAPack());
-            jsonObject.put("producer", staticProduct.getProducer());
-            jsonObject.put("barCode", staticProduct.getBarCode());
-            jsonObject.put("name", staticProduct.getName());
-            jsonObject.put("logicState", staticProduct.getLogicState());
-            jsonObject.put("category", staticProduct.getCategory());
-
-            JSONObject staticLocation = new JSONObject();
-            staticLocation.put("id", staticProduct.getStaticLocation().getId());
-            staticLocation.put("barCodeLocation", staticProduct.getStaticLocation().getBarCodeLocation());
-
-            jsonObject.put("staticLocation", staticLocation);
-            return ResponseEntity.ok(jsonObject.toString());
-        } else {
-            return ResponseEntity.ok(new JSONObject().put("Status", "error"));
-        }
-
-    }
 
     @RequestMapping(path = "/changeLocationOfTheProduct", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> changeLocationOfTheProduct(@RequestBody String newLocation) {
@@ -265,8 +236,9 @@ public class StaticProductController {
                 staticLocationRepository.save(staticProduct.getStaticLocation());
             } else {
                 staticProduct.setStaticLocation(staticLocation);
-            }
 
+            }
+            staticProductRepository.save(staticProduct);
 
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").put("Id", staticProduct.getId()).toString());
         } else {
