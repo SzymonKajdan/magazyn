@@ -16,6 +16,7 @@ import java.util.List;
 
 import static com.example.parsers.LocationParser.locationParser;
 import static com.example.parsers.SupplyParser.supplyParser;
+
 @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 public class SupplyController {
@@ -36,9 +37,54 @@ public class SupplyController {
     UsedProductRepository usedProductRepository;
 
 
+    @RequestMapping(path = "/Supply/getInfoAboutSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getInfoAboutSupply(@RequestBody String supplyRequest) {
+        JSONObject jsonObjectBarCode = new JSONObject(supplyRequest);
+        String barCode = jsonObjectBarCode.getString("barCodeOfSupply");
+        Supply supply = supplyRepository.findByBarCodeOfSupply(barCode);
+        if (supply != null) {
+            JSONObject supplyResponse = createSupplyResponse(supply);
+            return ResponseEntity.ok(supplyResponse.toString());
+        } else {
+            JSONObject respone = new JSONObject();
+            respone.put("Status", "Error");
+            return ResponseEntity.ok(respone.toString());
+        }
+
+    }
+
+    private JSONObject createSupplyResponse(Supply supply) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", supply.getId());
+        jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
+        jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
+        int amountOfPalletes = supply.getPalettes().size();
+        jsonObject.put("aomuntOfPalletes", amountOfPalletes);
+
+        JSONArray jsonArray = new JSONArray();
+        supply.getPalettes().forEach((x) -> {
+            jsonArray.put(createListOfPalletesToJson(x));
+
+        });
+        jsonObject.put("palletes", jsonArray);
+        return jsonObject;
+    }
+
+    private JSONObject createListOfPalletesToJson(Palette palette){
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("id",palette.getId());
+        int amountOfProducts=palette.getUsedProducts().stream().mapToInt(x->x.getQuanitity()).sum();
+        jsonObject.put("amountOfProducts",amountOfProducts);
+        return jsonObject;
+    }
+
     //zwraca wszystkie zaopatrzenia wraz z tymi które już były
+
+
     @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> allSupply() {
+
+
         return (ResponseEntity.ok(supplyRepository.findAll()));
 
     }
@@ -59,7 +105,7 @@ public class SupplyController {
 
         //Metoda sprawdza czy  paleta zostala oprózniona
         if (chceckGoods(suppplyToSave.getPalettes())) {
-             suppplyToSave.setStatus(true);
+            suppplyToSave.setStatus(true);
             supplyRepository.save(suppplyToSave);
 
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").toString());
@@ -101,11 +147,11 @@ public class SupplyController {
     public ResponseEntity<?> SpreadingGoods(@RequestBody String supplyRequest) {
 
         JSONObject request = new JSONObject(supplyRequest);
-        String barCode=request.get("barCode").toString();
+        String barCode = request.get("barCode").toString();
 
         Palette paletteInfo = paletteRepository.findByBarCode(barCode);
 
-        JSONArray locationArray=request.getJSONArray("locations");
+        JSONArray locationArray = request.getJSONArray("locations");
         List<Location> location = locationParser(locationArray.toString());
 
         //dodanie produktu do lokaizacji i zmiana satnu na palecie
@@ -142,12 +188,12 @@ public class SupplyController {
     private void addProductToStack(List<Location> locationListWithInfo) {
 
         for (Location oneLocation : locationListWithInfo) {
-            String barCodeLocation=oneLocation.getBarCodeLocation();
+            String barCodeLocation = oneLocation.getBarCodeLocation();
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
             for (Product productToAddToStack : oneLocation.getProducts()) {
 
-                String barCode=productToAddToStack.getStaticProduct().getBarCode();
+                String barCode = productToAddToStack.getStaticProduct().getBarCode();
                 StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
                 staticProduct.setLogicState(staticProduct.getLogicState() + productToAddToStack.getState());
 
@@ -170,12 +216,8 @@ public class SupplyController {
 
             for (UsedProduct product : pallete.getUsedProducts()) {
                 usedProductRepository.save(product);
-
-
             }
-
         }
-
     }
 }
 
