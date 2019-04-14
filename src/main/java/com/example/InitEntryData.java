@@ -42,6 +42,11 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
     private UsedProductRepository usedProductRepository;
     @Autowired
     private PasswordEncoder encoder;
+    @Autowired
+    PaletteRepository paletteRepository;
+    @Autowired
+    SupplyRepository supplyRepository;
+
 
     private List<String> getRecordFromLine(String line) {
         List<String> values = new ArrayList<String>();
@@ -53,16 +58,18 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
         }
         return values;
     }
-    private Date convertStringToDate(String stringDate){
-        String  s="09.08.2019";
-        String[] spitletedDate =stringDate.split(Pattern.quote("."));
-        int year=Integer.parseInt(spitletedDate[2]);
-        int month=Integer.parseInt(spitletedDate[1]);
-        int day=Integer.parseInt(spitletedDate[0]);
 
-        return  new DateTime(year,month,day,8,0,0).toDate();
+    private Date convertStringToDate(String stringDate) {
+        String s = "09.08.2019";
+        String[] spitletedDate = stringDate.split(Pattern.quote("."));
+        int year = Integer.parseInt(spitletedDate[2]);
+        int month = Integer.parseInt(spitletedDate[1]);
+        int day = Integer.parseInt(spitletedDate[0]);
+
+        return new DateTime(year, month, day, 8, 0, 0).toDate();
 
     }
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 
@@ -111,16 +118,16 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            int i =0;
-            for(List<String> strings:records){
-                StaticLocation staticLocation=new StaticLocation();
+            int i = 0;
+            for (List<String> strings : records) {
+                StaticLocation staticLocation = new StaticLocation();
                 staticLocation.setBarCodeLocation(strings.get(2));
                 staticLocationRepository.save(staticLocation);
 
                 Random r = new Random();
                 double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
 
-                StaticProduct staticProduct=new StaticProduct();
+                StaticProduct staticProduct = new StaticProduct();
                 staticProduct.setName(strings.get(1));
                 staticProduct.setCategory(strings.get(7));
                 staticProduct.setProducer(strings.get(0));
@@ -141,20 +148,20 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 Product product = new Product();
                 product.setStaticProduct(staticProduct);
 
-                if(strings.get(4).equals("null")) {
+                if (strings.get(4).equals("null")) {
 
-                }else{
+                } else {
                     product.setExprDate(convertStringToDate(strings.get(4)));
                 }
                 product.setState(staticProduct.getLogicState());
                 product.setLocations(new ArrayList<Location>(Arrays.asList(location)));
                 productRepository.save(product);
 
-                if(i==0){
-                    Product p=new Product();
+                if (i == 0) {
+                    Product p = new Product();
                     p.setState(200);
                     p.setExprDate(new Date());
-                    staticProduct.setLogicState(staticProduct.getLogicState() +  p.getState());
+                    staticProduct.setLogicState(staticProduct.getLogicState() + p.getState());
 
                     p.setStaticProduct(staticProduct);
                     p.setLocations(new ArrayList<>(Arrays.asList(location)));
@@ -171,10 +178,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             }
 
 
-
-
-
-            Principal principal=new Principal();
+            Principal principal = new Principal();
             principal.setNip("124455667");
             principal.setPhoneNo("790540834");
             principal.setAddress("adres 1");
@@ -184,47 +188,59 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             principalRepository.save(principal);
 
 
-
-            StaticProduct sp1=staticProductRepository.findByBarCode("1655409103");
-            StaticProduct sp2=staticProductRepository.findByBarCode("1477154291");
-            System.out.println("XDD"+sp2.getPrice());
+            StaticProduct sp1 = staticProductRepository.findByBarCode("1655409103");
+            StaticProduct sp2 = staticProductRepository.findByBarCode("1477154291");
+            System.out.println("XDD" + sp2.getPrice());
 
 
             UsedProduct up1 = new UsedProduct();
             up1.setIdStaticProduct(sp1.getId());
             up1.setPicked(false);
             up1.setQuanitity(100);
-            UsedProduct up2=new UsedProduct();
+            UsedProduct up2 = new UsedProduct();
             up2.setIdStaticProduct((long) 2);
             up2.setPicked(false);
             up2.setQuanitity(100);
 
             // ze statica usuwamy z logicstate zeby wiedziec ile zostało niezamowionych produktow
-            sp1.setLogicState(sp1.getLogicState()-100);
-            sp2.setLogicState(sp2.getLogicState()-100);
+            sp1.setLogicState(sp1.getLogicState() - 100);
+            sp2.setLogicState(sp2.getLogicState() - 100);
 
             Order o1 = new Order();
             o1.setPrincipal(principal);
 
 
+            DateTime dateTime = new DateTime().withHourOfDay(8);
+            dateTime = dateTime.plusDays(2);
 
-                DateTime dateTime = new DateTime().withHourOfDay(8);
-                dateTime = dateTime.plusDays(2);
-
-                o1.setDepartureDate(dateTime.toDate());
-
+            o1.setDepartureDate(dateTime.toDate());
 
 
-            o1.setPrice(sp1.getPrice()*100+sp2.getPrice()*100);
+            o1.setPrice(sp1.getPrice() * 100 + sp2.getPrice() * 100);
             o1.setUser(user);
-            o1.setUsedProductList(new ArrayList<>(Arrays.asList(up1,up2)));
+            o1.setUsedProductList(new ArrayList<>(Arrays.asList(up1, up2)));
 
             usedProductRepository.save(up2);
             usedProductRepository.save(up1);
             orderRepository.save(o1);
             System.out.println(o1.getId());
 
-
+            Supply sp = new Supply();
+            Palette palette = new Palette();
+            sp.setArriveDate(new Date());
+            sp.setStatus(false);
+            sp.setTypeOfSupply("Dostawa");
+            sp.setBarCodeOfSupply("Dostawa 1/" + new DateTime().getDayOfMonth());
+            UsedProduct usedProduct = new UsedProduct();
+            usedProduct.setIdStaticProduct((long) 1);
+            usedProduct.setBarCodeProduct("1655409103");
+            usedProduct.setQuanitity(800);
+            usedProductRepository.save(usedProduct);
+            palette.setBarCode("123");
+            palette.setUsedProducts(new ArrayList<>(Arrays.asList(usedProduct)));
+            paletteRepository.save(palette);
+            sp.setPalettes(new ArrayList<>(Arrays.asList(palette)));
+            supplyRepository.save(sp);
 
         }
 
