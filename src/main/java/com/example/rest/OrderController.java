@@ -116,6 +116,9 @@ public class OrderController {
         productJSON.put("name", product.getName());
         productJSON.put("producer", product.getProducer());
         productJSON.put("barCode", product.getBarCode());
+        productJSON.put("category", product.getCategory());
+        productJSON.put("quantityOnThePalette", product.getQuantityOnThePalette());
+        productJSON.put("amountInAPack", product.getAmountInAPack());
 
         JSONObject location = new JSONObject();
         location.put("id", product.getStaticLocation().getId());
