@@ -90,19 +90,41 @@ public class OrderController {
 
         JSONObject jsonId = new JSONObject(oderId);
 
+        if(jsonId.isNull("id")){
+            JSONObject returnJson = new JSONObject();
+            returnJson.put("status","ERROR");
+            returnJson.put("message","Nie podano id");
+            returnJson.put("success",false);
+
+            return ResponseEntity.ok(returnJson.toString());
+        }
 
         Long id = jsonId.getLong("id");
-        Order order = orderRepository.getOne(id);
-        JSONArray products = new JSONArray();
 
-        JSONObject orderObject = orderToJSON(order);
-        for (UsedProduct usedProduct : order.getUsedProductList()) {
+        if(orderRepository.existsById(id)) {
 
-            products.put(addProductsToOrder(usedProduct));
+            Order order = orderRepository.getOne(id);
 
+
+            JSONArray products = new JSONArray();
+
+            JSONObject orderObject = orderToJSON(order);
+            for (UsedProduct usedProduct : order.getUsedProductList()) {
+
+                products.put(addProductsToOrder(usedProduct));
+
+            }
+            orderObject.put("products", products);
+            return ResponseEntity.ok(orderObject.toString());
         }
-        orderObject.put("products", products);
-        return ResponseEntity.ok(orderObject.toString());
+
+        JSONObject returnJson = new JSONObject();
+        returnJson.put("status","ERROR");
+        returnJson.put("message","Brak takiego zamowienia");
+        returnJson.put("success",false);
+
+        return ResponseEntity.ok(returnJson.toString());
+
 
     }
 
