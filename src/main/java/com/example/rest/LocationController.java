@@ -7,14 +7,16 @@ import com.example.repository.StaticProductRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import static com.example.parsers.LocationParser.locationParserOneLocation;
-
+@CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @Controller
 @RequestMapping(path = "/Location")
 public class LocationController {
@@ -25,7 +27,7 @@ public class LocationController {
     @Autowired
     ProductController productController;
 
-    @RequestMapping(path = "/infoAboutLocation", method = RequestMethod.POST)
+    @RequestMapping(path = "/infoAboutLocation", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> infoAboutLocation(@RequestBody  String location) {
         JSONObject jsonObjectLocation = new JSONObject(location);
         Location locationFromRequest = locationParserOneLocation(jsonObjectLocation.toString());
@@ -50,6 +52,7 @@ public class LocationController {
         for (Product product : location.getProducts()) {
             JSONObject object = new JSONObject();
             JSONObject staticIfno = new JSONObject();
+            JSONObject staticLocation =new JSONObject();
             staticIfno.put("price", product.getStaticProduct().getPrice());
             staticIfno.put("id", product.getStaticProduct().getId());
             staticIfno.put("quantityOnThePalette", product.getStaticProduct().getQuantityOnThePalette());
@@ -58,11 +61,12 @@ public class LocationController {
             staticIfno.put("name", product.getStaticProduct().getName());
             staticIfno.put("logicState", product.getStaticProduct().getLogicState());
             staticIfno.put("amountInPack",product.getStaticProduct().getAmountInAPack());
-            staticIfno.put("staticLocations", product.getStaticProduct().getStaticLocations());
+            staticLocation.put("barCodeLocation",product.getStaticProduct().getStaticLocation().getBarCodeLocation());
+            staticIfno.put("staticLocations", staticLocation);
             object.put("id", product.getId());
             object.put("exprDate", product.getExprDate());
             object.put("state", product.getState());
-            object.put("staticPorduct", staticIfno);
+            object.put("staticProduct", staticIfno);
             jsonArrayWihtProductsInLocation.put(object);
         }
         jsonObject.put("products", jsonArrayWihtProductsInLocation);

@@ -2,6 +2,8 @@ package com.example.rest;
 
 import com.example.model.*;
 import com.example.repository.*;
+import org.aspectj.weaver.ast.Or;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+@CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 @RequestMapping("/order")
 public class OrderController {
@@ -36,18 +38,134 @@ public class OrderController {
 
     @RequestMapping(path = "/findAllOrderByDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
-        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
+        List<Order> orders = orderRepository.findAllByOrderByDate();
+
+        JSONArray jsonArrayOrders=new JSONArray();
+        for(Order order:orders){
+            JSONArray products = new JSONArray();
+
+            JSONObject orderObject = orderToJSON(order);
+            for (UsedProduct usedProduct : order.getUsedProductList()) {
+
+                products.put(addProductsToOrder(usedProduct));
+
+            }
+            orderObject.put("products", products);
+            jsonArrayOrders.put(orderObject);
+
+        }
+
+        return ResponseEntity.ok(jsonArrayOrders.toString());
+
     }
 
     @RequestMapping(path = "/findAllOrderByDateDsc", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateDsc() {
-        return ResponseEntity.ok(orderRepository.findAllByOrderByDate());
+        List<Order> orders = orderRepository.findAllByOrderByDateDsc();
+        return createJsonArrayOfOrders(orders);
+    }
+
+    private ResponseEntity<?> createJsonArrayOfOrders(List<Order> orders) {
+        JSONArray jsonArrayToResponse = new JSONArray();
+        for (Order oneOrderNotEnded : orders) {
+
+            JSONObject orderObject = orderToJSON(oneOrderNotEnded);
+
+            jsonArrayToResponse.put(orderObject);
+        }
+
+
+        return ResponseEntity.ok(jsonArrayToResponse.toString());
     }
 
     @RequestMapping(path = "/findNotEndedAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getNotEndedOrdersOrderByDateAsc() {
-        return ResponseEntity.ok(orderRepository.findAllByEndDateOrderByDate(null));
+        List<Order> ordersNotEnded = orderRepository.findAllByEndDateOrderByDate(null);
+        return createJsonArrayOfOrders(ordersNotEnded);
     }
+
+    @RequestMapping(path = "/getInfoAboutOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    private ResponseEntity<?> getInfoAboutOrder(@RequestBody String oderId) {
+
+
+        JSONObject jsonId = new JSONObject(oderId);
+
+
+        Long id = jsonId.getLong("id");
+        Order order = orderRepository.getOne(id);
+        JSONArray products = new JSONArray();
+
+        JSONObject orderObject = orderToJSON(order);
+        for (UsedProduct usedProduct : order.getUsedProductList()) {
+
+            products.put(addProductsToOrder(usedProduct));
+
+        }
+        orderObject.put("products", products);
+        return ResponseEntity.ok(orderObject.toString());
+
+    }
+
+    private JSONObject addProductsToOrder(UsedProduct usedProduct) {
+        System.out.println(usedProduct.getId() + " " + usedProduct.getQuanitity());
+        StaticProduct product = staticProductRepository.getOne(usedProduct.getIdStaticProduct());
+        JSONObject jsonToReturn= new JSONObject();
+
+        JSONObject productJSON = new JSONObject();
+        productJSON.put("id", product.getId());
+        productJSON.put("name", product.getName());
+        productJSON.put("producer", product.getProducer());
+        productJSON.put("barCode", product.getBarCode());
+
+        JSONObject location = new JSONObject();
+        location.put("id", product.getStaticLocation().getId());
+        location.put("barCodeLocation", product.getStaticLocation().getBarCodeLocation());
+
+        productJSON.put("staticLocation", location);
+        productJSON.put("quantityInPackage", product.getAmountInAPack());
+
+        jsonToReturn.put("product",productJSON);
+        jsonToReturn.put("quantity",usedProduct.getQuanitity());
+        return jsonToReturn;
+    }
+
+    private JSONObject orderToJSON(Order order) {
+
+        JSONObject orderObject = new JSONObject();
+        JSONObject principal = new JSONObject();
+        principal.put("id", order.getPrincipal().getId());
+        principal.put("nip", order.getPrincipal().getNip());
+        principal.put("address", order.getPrincipal().getAddress());
+        principal.put("companyName", order.getPrincipal().getCompanyName());
+        principal.put("phoneNo", order.getPrincipal().getPhoneNo());
+
+
+
+        orderObject.put("id", order.getId());
+        orderObject.put("date",order.getDate());
+        orderObject.put("endDate",order.getEndDate());
+        orderObject.put("principal", principal);
+        orderObject.put("price", order.getPrice());
+        orderObject.put("departureDate", order.getDepartureDate());
+        orderObject.put("amountOfArticles", countArticles(order.getUsedProductList()));
+        orderObject.put("palletes", countPalletes(order.getUsedProductList()));
+        orderObject.put("productsCount", order.getUsedProductList().size());
+        return orderObject;
+
+    }
+
+    private long countArticles(List<UsedProduct> usedProductList) {
+        long sum = usedProductList.stream().filter(o -> o.getQuanitity() > 0).mapToInt(o -> o.getQuanitity()).sum();
+
+        return sum;
+    }
+
+    private double countPalletes(List<UsedProduct> usedProductList) {
+        double sum = usedProductList.stream().filter(o -> o.getQuanitity() > 0).mapToDouble(o -> ((double) o.getQuanitity() / (double) staticProductRepository.getOne(o.getIdStaticProduct()).getQuantityOnThePalette())).sum();
+
+        return sum;
+    }
+
 
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> makeOrder(@RequestBody String request) {
@@ -55,15 +173,15 @@ public class OrderController {
         JSONObject json = new JSONObject(request);
         //HashMap<Long,Integer> productsMap = (HashMap<Long, Integer>) json.get("products");
 
-        System.out.println("Tutaj: "+json.getJSONArray("products"));
-
+        System.out.println("Tutaj: " + json.getJSONArray("products"));
+        System.out.println("tutaj"+json.get("principalID"));
         JSONArray productsJsonArray = json.getJSONArray("products");
 
         double price = 0.0;
         ArrayList<UsedProduct> usedProductArrayList = new ArrayList<>();
         ArrayList<StaticProduct> staticProductArrayList = new ArrayList<>();
 
-        for(int i=0; i<productsJsonArray.length();++i){
+        for (int i = 0; i < productsJsonArray.length(); ++i) {
 
             Long id = productsJsonArray.getJSONObject(i).getLong("id");
             int quantity = productsJsonArray.getJSONObject(i).getInt("quantity");
@@ -76,18 +194,16 @@ public class OrderController {
 
             usedProductArrayList.add(usedProduct);
 
-            price += staticProduct.getPrice()*quantity;
+            price += staticProduct.getPrice() * quantity;
 
-            if(staticProduct.getLogicState()-quantity>0) {
+            if (staticProduct.getLogicState() - quantity > 0) {
                 staticProduct.setLogicState(staticProduct.getLogicState() - quantity);
                 staticProductArrayList.add(staticProduct);
-            }
-            else
-            {
+            } else {
                 JSONObject jo = new JSONObject();
 
-                jo.put("success",false);
-                jo.put("message","BRAK_ILOSCI_PRODUKTU");
+                jo.put("success", false);
+                jo.put("message", "BRAK_ILOSCI_PRODUKTU");
 
                 return ResponseEntity.ok(jo.toString());
             }
@@ -106,6 +222,10 @@ public class OrderController {
             o.setPrincipal(principalRepository.findById(json.getLong("principalID")).get());
             o.setUser(userRepository.findByUsername(username));
             o.setDate(new Date());
+            DateTime dateTime = new DateTime().withHourOfDay(8);
+            dateTime = dateTime.plusDays(2);
+
+            o.setDepartureDate(dateTime.toDate());
             //o.setDepartureDate(formatter.parse("2019-05-05"));
             //o.setEndDate(formatter.parse("2019-05-05"));
 
@@ -116,24 +236,25 @@ public class OrderController {
             JSONArray ja = new JSONArray();
             double palletes = 0.0;
 
-            for(UsedProduct ud: usedProductArrayList){
+            for (UsedProduct ud : usedProductArrayList) {
                 JSONObject usedProductsJson = new JSONObject();
 
                 StaticProduct sp = staticProductRepository.getOne(ud.getIdStaticProduct());
 
-                usedProductsJson.put("productID",ud.getIdStaticProduct());
-                usedProductsJson.put("palletes",(double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette());
-                palletes += (double)ud.getQuanitity()/(double)sp.getQuantityOnThePalette();
+                usedProductsJson.put("productID", ud.getIdStaticProduct());
+                usedProductsJson.put("palletes", (double) ud.getQuanitity() / (double) sp.getQuantityOnThePalette());
+                palletes += (double) ud.getQuanitity() / (double) sp.getQuantityOnThePalette();
 
                 ja.put(usedProductsJson);
             }
 
             JSONObject jo = new JSONObject();
 
-            jo.put("success",true);
+            jo.put("success", true);
             //jo.put("order",o);
-            jo.put("products",ja);
-            jo.put("palletes",palletes);
+            jo.put("products", ja);
+            jo.put("palletes", palletes);
+            jo.put("id", o.getId());
 
             return ResponseEntity.ok(jo.toString());
 
@@ -164,21 +285,21 @@ public class OrderController {
         List<Product> productList = new ArrayList<>();
         List<ProductIdWithQuantity> productIdWithQuantityList = new ArrayList<>();
 
-        Map<Long,ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
+        Map<Long, ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
 
-        for(UsedProduct usedProduct: o.getUsedProductList()){
+        for (UsedProduct usedProduct : o.getUsedProductList()) {
             ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
             productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
             productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
             productIdWithQuantityList.add(productIdWithQuantity);
 
-            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(),new ProductIdWithQuantity(usedProduct.getIdStaticProduct(),usedProduct.getQuanitity()));
+            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(), new ProductIdWithQuantity(usedProduct.getIdStaticProduct(), usedProduct.getQuanitity()));
 
             usedProduct.setPicked(true);
             usedProductList.add(usedProduct);
         }
 
-        for(int i=0; i<jsonArray.length();++i) {
+        for (int i = 0; i < jsonArray.length(); ++i) {
 
             JSONObject jo = jsonArray.getJSONObject(i);
             Location l = locationRepository.findByBarCodeLocation(jo.getString("locationBarCode"));
@@ -190,33 +311,31 @@ public class OrderController {
 
             Long staticProductID = p.getStaticProduct().getId();
             //System.out.println("XDD " + staticProductID);
-            productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity()-quantiy);
+            productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity() - quantiy);
 
-            if(productIdWithQuantityMap.get(staticProductID).getQuantity() == 0)
-            {
+            if (productIdWithQuantityMap.get(staticProductID).getQuantity() == 0) {
                 productIdWithQuantityMap.remove(staticProductID);
-            }
-            else if(productIdWithQuantityMap.get(staticProductID).getQuantity()<0){
+            } else if (productIdWithQuantityMap.get(staticProductID).getQuantity() < 0) {
                 System.out.println("ERROR");
             }
 
-            p.setState(p.getState()-quantiy);
+            p.setState(p.getState() - quantiy);
             productList.add(p);
         }
 
-        if(productIdWithQuantityMap.isEmpty()){
+        if (productIdWithQuantityMap.isEmpty()) {
 
             usedProductRepository.saveAll(usedProductList);
             productRepository.saveAll(productList);
             //System.out.println("XDDDDDDDDDDDDD");
 
-            returnJson.put("success",true);
+            returnJson.put("success", true);
+
             return ResponseEntity.ok(returnJson.toString());
 
-        }
-        else{
-            returnJson.put("success",false);
-            returnJson.put("message","PRODUKTY_SIE_NIE_ZGADZAJA");
+        } else {
+            returnJson.put("success", false);
+            returnJson.put("message", "PRODUKTY_SIE_NIE_ZGADZAJA");
             return ResponseEntity.ok(returnJson.toString());
         }
     }

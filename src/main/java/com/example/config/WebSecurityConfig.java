@@ -61,9 +61,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
+        httpSecurity.
             // we don't need CSRF because our token is invulnerable
-            .csrf().disable()
+        cors().and().csrf().disable()
 
             .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 

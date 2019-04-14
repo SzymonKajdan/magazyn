@@ -2,14 +2,13 @@ package com.example.rest;
 
 import com.example.model.*;
 import com.example.repository.*;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +16,7 @@ import java.util.List;
 
 import static com.example.parsers.LocationParser.locationParser;
 import static com.example.parsers.SupplyParser.supplyParser;
-
+@CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
 public class SupplyController {
 
@@ -38,14 +37,14 @@ public class SupplyController {
 
 
     //zwraca wszystkie zaopatrzenia wraz z tymi które już były
-    @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET)
+    @RequestMapping(path = "/Supply/allSupply", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> allSupply() {
         return (ResponseEntity.ok(supplyRepository.findAll()));
 
     }
 
     //Zwraca Wszytskie aktwyne zaopatrzenia
-    @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET)
+    @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getActiveSupplies() {
         return ResponseEntity.ok(supplyRepository.findByStatus(false));
     }
@@ -80,12 +79,12 @@ public class SupplyController {
     }
 
     //dodowanie nowego zaopatrzenia z storny internetowej
-    @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST)
+    @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addSupply(@RequestBody String supplyRequest) {
 
         Supply supply = supplyParser(supplyRequest);
         saveUsedProduct(supply.getPalettes());
-        supply.setArriveDate(new Date());
+        supply.setArriveDate(new DateTime().plusDays(4).toDate());
 
         paletteRepository.saveAll(supply.getPalettes());
         supplyRepository.save(supply);
@@ -98,7 +97,7 @@ public class SupplyController {
     }
 
     //Rozkaldanie zaopatrzenia
-    @RequestMapping(path = "/Supply/SpreadingGoods", method = RequestMethod.POST)
+    @RequestMapping(path = "/Supply/SpreadingGoods", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> SpreadingGoods(@RequestBody String supplyRequest) {
 
         JSONObject request = new JSONObject(supplyRequest);
