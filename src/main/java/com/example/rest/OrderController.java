@@ -36,7 +36,7 @@ public class OrderController {
     @Autowired
     StaticProductRepository staticProductRepository;
 
-    @RequestMapping(path = "/amountOfNotEndedOrders",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(path = "/amountOfNotEndedOrders",method = RequestMethod.GET)
     public ResponseEntity<?>amountOfNotEndedOrders(){
         List<Order>ordersNotEnded=orderRepository.findAllByUserIsNullAndEndDateIsNull();
         int size=ordersNotEnded.size();
