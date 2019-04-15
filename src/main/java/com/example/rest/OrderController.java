@@ -2,7 +2,7 @@ package com.example.rest;
 
 import com.example.model.*;
 import com.example.repository.*;
-import org.aspectj.weaver.ast.Or;
+import com.example.security.model.User;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
@@ -36,16 +34,14 @@ public class OrderController {
     @Autowired
     StaticProductRepository staticProductRepository;
 
-    @RequestMapping(path = "/amountOfNotEndedOrders",method = RequestMethod.GET)
-    public ResponseEntity<?>amountOfNotEndedOrders(){
-        List<Order>ordersNotEnded=orderRepository.findAllByUserIsNullAndEndDateIsNull();
-        int size=ordersNotEnded.size();
-        JSONObject response=new JSONObject();
-        response.put("amount",size);
+    @RequestMapping(path = "/amountOfNotEndedOrders", method = RequestMethod.GET)
+    public ResponseEntity<?> amountOfNotEndedOrders() {
+        List<Order> ordersNotEnded = orderRepository.findAllByUserIsNullAndEndDateIsNull();
+        int size = ordersNotEnded.size();
+        JSONObject response = new JSONObject();
+        response.put("amount", size);
 
         return ResponseEntity.ok(size);
-
-
 
 
     }
@@ -54,8 +50,8 @@ public class OrderController {
     public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
         List<Order> orders = orderRepository.findAllByOrderByDate();
 
-        JSONArray jsonArrayOrders=new JSONArray();
-        for(Order order:orders){
+        JSONArray jsonArrayOrders = new JSONArray();
+        for (Order order : orders) {
             JSONArray products = new JSONArray();
 
             JSONObject orderObject = orderToJSON(order);
@@ -100,25 +96,32 @@ public class OrderController {
 
     @RequestMapping(path = "/getInfoAboutOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     private ResponseEntity<?> getInfoAboutOrder(@RequestBody String oderId) {
+        String username;
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        username = userDetails.getUsername();
+        User user =userRepository.findByUsername(username);
+
 
 
         JSONObject jsonId = new JSONObject(oderId);
 
-        if(jsonId.isNull("id")){
+        if (jsonId.isNull("id")) {
             JSONObject returnJson = new JSONObject();
-            returnJson.put("status","ERROR");
-            returnJson.put("message","Nie podano id");
-            returnJson.put("success",false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Nie podano id");
+            returnJson.put("success", false);
 
             return ResponseEntity.ok(returnJson.toString());
         }
 
         Long id = jsonId.getLong("id");
 
-        if(orderRepository.existsById(id)) {
+        if (orderRepository.existsById(id)) {
 
             Order order = orderRepository.getOne(id);
-
+            order.setUser(user);
+            userRepository.save(user);
 
             JSONArray products = new JSONArray();
 
@@ -133,9 +136,9 @@ public class OrderController {
         }
 
         JSONObject returnJson = new JSONObject();
-        returnJson.put("status","ERROR");
-        returnJson.put("message","Brak takiego zamowienia");
-        returnJson.put("success",false);
+        returnJson.put("status", "ERROR");
+        returnJson.put("message", "Brak takiego zamowienia");
+        returnJson.put("success", false);
 
         return ResponseEntity.ok(returnJson.toString());
 
@@ -145,7 +148,7 @@ public class OrderController {
     private JSONObject addProductsToOrder(UsedProduct usedProduct) {
         System.out.println(usedProduct.getId() + " " + usedProduct.getQuanitity());
         StaticProduct product = staticProductRepository.getOne(usedProduct.getIdStaticProduct());
-        JSONObject jsonToReturn= new JSONObject();
+        JSONObject jsonToReturn = new JSONObject();
 
         JSONObject productJSON = new JSONObject();
         productJSON.put("id", product.getId());
@@ -163,8 +166,8 @@ public class OrderController {
         productJSON.put("staticLocation", location);
         productJSON.put("quantityInPackage", product.getAmountInAPack());
 
-        jsonToReturn.put("product",productJSON);
-        jsonToReturn.put("quantity",usedProduct.getQuanitity());
+        jsonToReturn.put("product", productJSON);
+        jsonToReturn.put("quantity", usedProduct.getQuanitity());
         return jsonToReturn;
     }
 
@@ -179,10 +182,9 @@ public class OrderController {
         principal.put("phoneNo", order.getPrincipal().getPhoneNo());
 
 
-
         orderObject.put("id", order.getId());
-        orderObject.put("date",order.getDate());
-        orderObject.put("endDate",order.getEndDate());
+        orderObject.put("date", order.getDate());
+        orderObject.put("endDate", order.getEndDate());
         orderObject.put("principal", principal);
         orderObject.put("price", order.getPrice());
         orderObject.put("departureDate", order.getDepartureDate());
@@ -213,7 +215,7 @@ public class OrderController {
         //HashMap<Long,Integer> productsMap = (HashMap<Long, Integer>) json.get("products");
 
         System.out.println("Tutaj: " + json.getJSONArray("products"));
-        System.out.println("tutaj"+json.get("principalID"));
+        System.out.println("tutaj" + json.get("principalID"));
         JSONArray productsJsonArray = json.getJSONArray("products");
 
         double price = 0.0;
