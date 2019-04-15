@@ -217,7 +217,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
 
             o1.setPrice(sp1.getPrice() * 100 + sp2.getPrice() * 100);
-            o1.setUser(user);
+
             o1.setUsedProductList(new ArrayList<>(Arrays.asList(up1, up2)));
 
             usedProductRepository.save(up2);

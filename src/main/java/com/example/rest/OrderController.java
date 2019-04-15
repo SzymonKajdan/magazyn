@@ -36,6 +36,17 @@ public class OrderController {
     @Autowired
     StaticProductRepository staticProductRepository;
 
+    @RequestMapping(path = "/amountOfNotEndedOrders",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?>amountOfNotEndedOrders(){
+        List<Order>ordersNotEnded=orderRepository.findAllByUserIsNullAndEndDateIsNull();
+        int size=ordersNotEnded.size();
+        JSONObject response=new JSONObject();
+        response.put("amount",size);
+        return ResponseEntity.ok(response.toString());
+
+
+    }
+
     @RequestMapping(path = "/findAllOrderByDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
         List<Order> orders = orderRepository.findAllByOrderByDate();
@@ -245,7 +256,7 @@ public class OrderController {
             o.setUsedProductList(usedProductArrayList);
             o.setPrice(price);
             o.setPrincipal(principalRepository.findById(json.getLong("principalID")).get());
-            o.setUser(userRepository.findByUsername(username));
+
             o.setDate(new Date());
             DateTime dateTime = new DateTime().withHourOfDay(8);
             dateTime = dateTime.plusDays(2);

@@ -2,6 +2,7 @@ package com.example.repository;
 
 import com.example.model.Location;
 import com.example.model.Order;
+import com.example.security.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,4 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByEndDate(Date d);
 
     List<Order> findAllByEndDateOrderByDate(Date d);
+
+    List<Order>findAllByUserIsNullAndEndDateIsNull();
 }
