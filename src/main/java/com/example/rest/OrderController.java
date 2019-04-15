@@ -42,7 +42,7 @@ public class OrderController {
         int size=ordersNotEnded.size();
         JSONObject response=new JSONObject();
         response.put("amount",size);
-        return ResponseEntity.ok(response.toString());
+        return ResponseEntity.ok(size);
 
 
     }
