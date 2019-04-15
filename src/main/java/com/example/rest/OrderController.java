@@ -34,6 +34,28 @@ public class OrderController {
     @Autowired
     StaticProductRepository staticProductRepository;
 
+
+    @RequestMapping(path = "/checkUserActiveOrder", method = RequestMethod.GET)
+    public ResponseEntity<?> checkUserActiveOrder() {
+        String username;
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        username = userDetails.getUsername();
+        User user = userRepository.findByUsername(username);
+
+
+        Order order = orderRepository.findByDateIsNullAndUser(user);
+        if (order != null) {
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id", order.getId());
+
+            return ResponseEntity.ok(jsonObject.toString());
+        } else {
+            return ResponseEntity.ok(new JSONObject().toString());
+        }
+    }
+
     @RequestMapping(path = "/amountOfNotEndedOrders", method = RequestMethod.GET)
     public ResponseEntity<?> amountOfNotEndedOrders() {
         List<Order> ordersNotEnded = orderRepository.findAllByUserIsNullAndEndDateIsNull();
@@ -46,14 +68,13 @@ public class OrderController {
 
     }
 
-    @RequestMapping(path = "/cancelMakingOrder" ,method = RequestMethod.POST)
-    public  ResponseEntity<?>cancelMakingOrder(@RequestBody String request){
+    @RequestMapping(path = "/cancelMakingOrder", method = RequestMethod.POST)
+    public ResponseEntity<?> cancelMakingOrder(@RequestBody String request) {
         String username;
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         username = userDetails.getUsername();
-        User user =userRepository.findByUsername(username);
-
+        User user = userRepository.findByUsername(username);
 
 
         JSONObject jsonId = new JSONObject(request);
@@ -70,9 +91,9 @@ public class OrderController {
         Long id = jsonId.getLong("id");
 
 
-        Order order=orderRepository.getOne(id);
+        Order order = orderRepository.getOne(id);
 
-        if(order!=null) {
+        if (order != null) {
             order.setUser(null);
             orderRepository.save(order);
 
@@ -80,7 +101,7 @@ public class OrderController {
             returnJson.put("success", true);
 
             return ResponseEntity.ok(returnJson.toString());
-        }else{
+        } else {
 
             JSONObject returnJson = new JSONObject();
             returnJson.put("success", false);
@@ -143,8 +164,7 @@ public class OrderController {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         username = userDetails.getUsername();
-        User user =userRepository.findByUsername(username);
-
+        User user = userRepository.findByUsername(username);
 
 
         JSONObject jsonId = new JSONObject(oderId);
