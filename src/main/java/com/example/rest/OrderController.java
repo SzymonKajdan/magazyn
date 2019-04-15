@@ -46,6 +46,39 @@ public class OrderController {
 
     }
 
+    @RequestMapping(path = "/cancelMakingOrder" ,method = RequestMethod.POST)
+    public  ResponseEntity<?>cancelMakingOrder(@RequestBody String request){
+        String username;
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        username = userDetails.getUsername();
+        User user =userRepository.findByUsername(username);
+
+
+
+        JSONObject jsonId = new JSONObject(request);
+
+        if (jsonId.isNull("`id")) {
+            JSONObject returnJson = new JSONObject();
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Nie podano id");
+            returnJson.put("success", false);
+
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Long id = jsonId.getLong("id");
+        Order order=orderRepository.getOne(id);
+        order.setUser(null);
+        orderRepository.save(order);
+
+        JSONObject returnJson = new JSONObject();
+        returnJson.put("success", false);
+
+        return ResponseEntity.ok(returnJson.toString());
+
+    }
+
     @RequestMapping(path = "/findAllOrderByDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getAllOrdersOrderByDateAsc() {
         List<Order> orders = orderRepository.findAllByOrderByDate();
@@ -95,7 +128,7 @@ public class OrderController {
     }
 
     @RequestMapping(path = "/getInfoAboutOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    private ResponseEntity<?> getInfoAboutOrder(@RequestBody String oderId) {
+    public ResponseEntity<?> getInfoAboutOrder(@RequestBody String oderId) {
         String username;
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
