@@ -23,5 +23,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order>findAllByUserIsNullAndEndDateIsNull();
 
-    Order findByDateIsNullAndUser(User u);
+    Order findByEndDateIsNullAndUser(User u);
 }

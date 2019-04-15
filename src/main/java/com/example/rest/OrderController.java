@@ -44,12 +44,13 @@ public class OrderController {
         User user = userRepository.findByUsername(username);
 
 
-        Order order = orderRepository.findByDateIsNullAndUser(user);
+        Order order = orderRepository.findByEndDateIsNullAndUser(user);
+        System.out.println(order);
         if (order != null) {
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("id", order.getId());
-
+            System.out.println(jsonObject.toString());
             return ResponseEntity.ok(jsonObject.toString());
         } else {
             return ResponseEntity.ok(null);
