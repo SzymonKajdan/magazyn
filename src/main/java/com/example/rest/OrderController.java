@@ -58,7 +58,7 @@ public class OrderController {
 
         JSONObject jsonId = new JSONObject(request);
 
-        if (jsonId.isNull("`id")) {
+        if (jsonId.isNull("id")) {
             JSONObject returnJson = new JSONObject();
             returnJson.put("status", "ERROR");
             returnJson.put("message", "Nie podano id");
@@ -68,15 +68,25 @@ public class OrderController {
         }
 
         Long id = jsonId.getLong("id");
+
+
         Order order=orderRepository.getOne(id);
-        order.setUser(null);
-        orderRepository.save(order);
 
-        JSONObject returnJson = new JSONObject();
-        returnJson.put("success", false);
+        if(order!=null) {
+            order.setUser(null);
+            orderRepository.save(order);
 
-        return ResponseEntity.ok(returnJson.toString());
+            JSONObject returnJson = new JSONObject();
+            returnJson.put("success", true);
 
+            return ResponseEntity.ok(returnJson.toString());
+        }else{
+
+            JSONObject returnJson = new JSONObject();
+            returnJson.put("success", false);
+
+            return ResponseEntity.ok(returnJson.toString());
+        }
     }
 
     @RequestMapping(path = "/findAllOrderByDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -154,6 +164,7 @@ public class OrderController {
 
             Order order = orderRepository.getOne(id);
             order.setUser(user);
+            System.out.println(order.getUser());
             userRepository.save(user);
 
             JSONArray products = new JSONArray();
