@@ -230,7 +230,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             sp.setArriveDate(new Date());
             sp.setStatus(false);
             sp.setTypeOfSupply("Dostawa");
-            sp.setBarCodeOfSupply("Dostawa 1/" + new DateTime().getDayOfMonth());
+            sp.setBarCodeOfSupply("1/2019/15/04");
             UsedProduct usedProduct = new UsedProduct();
             usedProduct.setIdStaticProduct((long) 1);
             usedProduct.setBarCodeProduct("1655409103");

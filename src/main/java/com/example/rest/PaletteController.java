@@ -56,6 +56,7 @@ public class PaletteController {
             jsonArray.put(createProductsInPaleeteJSON(x));
         });
         jsonObject.put("products", jsonArray);
+        jsonObject.put("barCode",palette.getBarCode());
         return jsonObject;
     }
 

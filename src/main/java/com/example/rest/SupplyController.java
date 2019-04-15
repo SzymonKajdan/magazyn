@@ -70,11 +70,11 @@ public class SupplyController {
         return jsonObject;
     }
 
-    private JSONObject createListOfPalletesToJson(Palette palette){
-        JSONObject jsonObject=new JSONObject();
-        jsonObject.put("id",palette.getId());
-        int amountOfProducts=palette.getUsedProducts().stream().mapToInt(x->x.getQuanitity()).sum();
-        jsonObject.put("amountOfProducts",amountOfProducts);
+    private JSONObject createListOfPalletesToJson(Palette palette) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", palette.getId());
+        int amountOfProducts = palette.getUsedProducts().stream().mapToInt(x -> x.getQuanitity()).sum();
+        jsonObject.put("amountOfProducts", amountOfProducts);
         return jsonObject;
     }
 
@@ -129,16 +129,53 @@ public class SupplyController {
     public ResponseEntity<?> addSupply(@RequestBody String supplyRequest) {
 
         Supply supply = supplyParser(supplyRequest);
-        saveUsedProduct(supply.getPalettes());
-        supply.setArriveDate(new DateTime().plusDays(4).toDate());
+        String barCodeOfSupply = supply.getBarCodeOfSupply();
+        boolean statusIfSupplyNotExist = checkThatSupplyBarCodeIsUnique(barCodeOfSupply);
+        if (statusIfSupplyNotExist) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "SupplyExist");
+            return ResponseEntity.ok(response.toString());
+        } else {
+            saveUsedProduct(supply.getPalettes());
+            supply.setArriveDate(new DateTime().plusDays(4).toDate());
 
-        paletteRepository.saveAll(supply.getPalettes());
-        supplyRepository.save(supply);
+            boolean isPalettesBarCodesIsUnique = checkUniqueBarCodeOfPalettes(supply.getPalettes());
+            if (isPalettesBarCodesIsUnique) {
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("Status", "Succes");
-        jsonObject.put("id", supply.getId());
-        return ResponseEntity.ok(jsonObject.toString());
+                paletteRepository.saveAll(supply.getPalettes());
+                supplyRepository.save(supply);
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("Status", "Succes");
+                jsonObject.put("id", supply.getId());
+                return ResponseEntity.ok(jsonObject.toString());
+            } else {
+                JSONObject response = new JSONObject();
+                response.put("Status", "oneOfBarCodeOfPalettesIsNotUnique");
+                return ResponseEntity.ok(response.toString());
+            }
+        }
+    }
+
+    private boolean checkUniqueBarCodeOfPalettes(List<Palette> palettes) {
+        for (Palette palette : palettes) {
+            String barCodeOfPaletee = palette.getBarCode();
+            Palette isExsit = paletteRepository.findByBarCode(barCodeOfPaletee);
+            if (isExsit != null) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    private boolean checkThatSupplyBarCodeIsUnique(String supplyBarCode) {
+        Supply isExist = supplyRepository.findByBarCodeOfSupply(supplyBarCode);
+        if (isExist != null) {
+            return true;
+        } else {
+            return false;
+        }
 
     }
 
@@ -154,16 +191,31 @@ public class SupplyController {
         JSONArray locationArray = request.getJSONArray("locations");
         List<Location> location = locationParser(locationArray.toString());
 
-        //dodanie produktu do lokaizacji i zmiana satnu na palecie
-        addProductToStack(location);
-        changeInfo(paletteInfo, location);
 
-        return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
+        boolean isChangingStateIsGood = changeInfo(paletteInfo, location);
+        if (!isChangingStateIsGood) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "error");
+            return ResponseEntity.ok(response.toString());
+        } else {
+            //dodanie produktu do lokaizacji i zmiana satnu na palecie
+            boolean isProductsareAddedtoStack = addProductToStack(location, paletteInfo);
+            System.out.println("status " + isProductsareAddedtoStack);
+
+            if (!isProductsareAddedtoStack) {
+                JSONObject response = new JSONObject();
+                response.put("Status", "error");
+                return ResponseEntity.ok(response.toString());
+            }
+
+
+            return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
+        }
 
     }
 
     //zmaina stanu na palecie  bierzemy porudkt z palety  i porudlt z requestu sprawdziamy czy ten ktory zjest z requestu jest w tej lokalizacji
-    private void changeInfo(Palette paletteInfo, List<Location> location) {
+    private boolean changeInfo(Palette paletteInfo, List<Location> location) {
 
         for (UsedProduct productToSave : paletteInfo.getUsedProducts()) {
             for (Location oneLocation : location) {
@@ -171,30 +223,48 @@ public class SupplyController {
                     System.out.println(productFromRequest.getStaticProduct().getBarCode());
                     if (productToSave.getBarCodeProduct().equals(productFromRequest.getStaticProduct().getBarCode())) {
                         System.out.println(productToSave.getBarCodeProduct());
-                        productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
+
+
+                        if (productFromRequest.getState() > productToSave.getQuanitity()) {
+                            return false;
+                        } else {
+                            productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
+                        }
+
                         if (productToSave.getQuanitity() == 0) {
                             productToSave.setPicked(true);
                             usedProductRepository.save(productToSave);
+
+                        } else {
+                            usedProductRepository.save(productToSave);
+
                         }
-
-
                     }
                 }
 
             }
         }
+        return true;
     }
 
-    private void addProductToStack(List<Location> locationListWithInfo) {
+    private boolean addProductToStack(List<Location> locationListWithInfo, Palette paletteInfo) {
 
         for (Location oneLocation : locationListWithInfo) {
             String barCodeLocation = oneLocation.getBarCodeLocation();
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
-            for (Product productToAddToStack : oneLocation.getProducts()) {
+            if (locationInWareHosue == null) return false;
 
+            for (Product productToAddToStack : oneLocation.getProducts()) {
                 String barCode = productToAddToStack.getStaticProduct().getBarCode();
                 StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
+
+                if (staticProduct == null) return false;
+
+                boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
+                if (isPorductPicked) return false;
+
+
                 staticProduct.setLogicState(staticProduct.getLogicState() + productToAddToStack.getState());
 
                 //System.out.println(locationInWareHosue.getBarCodeLocation());
@@ -209,6 +279,23 @@ public class SupplyController {
 
             }
         }
+        return true;
+    }
+
+    private boolean checkIfProductWasPicekd(Product productToAddToStack, Palette paletteInfo) {
+        UsedProduct usedProduct = paletteInfo.getUsedProducts().stream().filter
+                (x -> x.getBarCodeProduct().equals(productToAddToStack.getStaticProduct().getBarCode()))
+                .findFirst().orElse(null);
+
+        System.out.println(usedProduct.getQuanitity());
+
+        if (usedProduct.getQuanitity() == 0) {
+            return true;
+        } else {
+            return false;
+        }
+
+
     }
 
     private void saveUsedProduct(List<Palette> palettes) {
