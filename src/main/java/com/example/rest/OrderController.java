@@ -52,7 +52,7 @@ public class OrderController {
 
             return ResponseEntity.ok(jsonObject.toString());
         } else {
-            return ResponseEntity.ok(new JSONObject().toString());
+            return ResponseEntity.ok("");
         }
     }
 
