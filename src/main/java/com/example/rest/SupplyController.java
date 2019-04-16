@@ -232,7 +232,7 @@ public class SupplyController {
 
                         if (productFromRequest.getState() > productToSave.getQuanitity()) {
                             System.out.println("wiazlen  "+productFromRequest.getState()+" a mam max "+productToSave.getQuanitity());
-                           // return false;
+                            return false;
                         } else {
                             productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
                         }
