@@ -231,6 +231,7 @@ public class SupplyController {
 
 
                         if (productFromRequest.getState() > productToSave.getQuanitity()) {
+                            System.out.println("tutaj 1 ");
                             return false;
                         } else {
                             productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
@@ -258,14 +259,20 @@ public class SupplyController {
             String barCodeLocation = oneLocation.getBarCodeLocation();
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
-            if (locationInWareHosue == null) return false;
+            if (locationInWareHosue == null) {
+                System.out.println("tutaj 1 ");
+                return false;
+            }
 
             for (Product productToAddToStack : oneLocation.getProducts()) {
                 String barCode = productToAddToStack.getStaticProduct().getBarCode();
                 StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
 
-                if (staticProduct == null) return false;
 
+                if (staticProduct == null) {
+                    System.out.println("tutaj 2 ");
+                    return false;
+                }
                 //  boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
                 // if (isPorductPicked) return false;
 
