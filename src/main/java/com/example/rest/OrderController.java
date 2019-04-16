@@ -297,6 +297,7 @@ public class OrderController {
             usedProduct.setIdStaticProduct(id);
             usedProduct.setQuanitity(quantity);
             usedProduct.setPicked(false);
+            usedProduct.setBarCodeProduct(staticProduct.getBarCode());
 
             usedProductArrayList.add(usedProduct);
 

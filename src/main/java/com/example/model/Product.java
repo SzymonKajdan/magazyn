@@ -16,8 +16,6 @@ public class Product {
     @SequenceGenerator(name = "product_seq", sequenceName = "product_seq", allocationSize = 1)
     private Long id;
 
-
-
     @Temporal(TemporalType.TIMESTAMP)
 
     private Date exprDate;
