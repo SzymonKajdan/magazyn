@@ -231,8 +231,8 @@ public class SupplyController {
 
 
                         if (productFromRequest.getState() > productToSave.getQuanitity()) {
-                            System.out.println("tutaj 1 ");
-                            return false;
+                            System.out.println("wiazlen  "+productFromRequest.getState()+" a mam max "+productToSave.getQuanitity());
+                           // return false;
                         } else {
                             productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
                         }
@@ -257,10 +257,12 @@ public class SupplyController {
 
         for (Location oneLocation : locationListWithInfo) {
             String barCodeLocation = oneLocation.getBarCodeLocation();
+
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
             if (locationInWareHosue == null) {
-                System.out.println("tutaj 3 ");
+                System.out.println("lokaizajca jest nullem "+barCodeLocation);
+
                 return false;
             }
 
@@ -270,7 +272,7 @@ public class SupplyController {
 
 
                 if (staticProduct == null) {
-                    System.out.println("tutaj 2 ");
+                    System.out.println("nie ma takiego pridutku  "+barCode);
                     return false;
                 }
                 //  boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
