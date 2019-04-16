@@ -232,7 +232,7 @@ public class SupplyController {
 
                         if (productFromRequest.getState() > productToSave.getQuanitity()) {
                             System.out.println("wiazlen  "+productFromRequest.getState()+" a mam max "+productToSave.getQuanitity());
-                            return false;
+                           // return false;
                         } else {
                             productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
                         }
@@ -260,21 +260,21 @@ public class SupplyController {
 
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
-            if (locationInWareHosue == null) {
-                System.out.println("lokaizajca jest nullem "+barCodeLocation);
-
-                return false;
-            }
+//            if (locationInWareHosue == null) {
+//                System.out.println("lokaizajca jest nullem "+barCodeLocation);
+//
+//                return false;
+//            }
 
             for (Product productToAddToStack : oneLocation.getProducts()) {
                 String barCode = productToAddToStack.getStaticProduct().getBarCode();
                 StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
-
-
-                if (staticProduct == null) {
-                    System.out.println("nie ma takiego pridutku  "+barCode);
-                    return false;
-                }
+//
+//
+//                if (staticProduct == null) {
+//                    System.out.println("nie ma takiego pridutku  "+barCode);
+//                    return false;
+//                }
                 //  boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
                 // if (isPorductPicked) return false;
 
