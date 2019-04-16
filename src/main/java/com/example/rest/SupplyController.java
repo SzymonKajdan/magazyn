@@ -194,7 +194,7 @@ public class SupplyController {
         List<Location> location = locationParser(locationArray.toString());
 
 
-        boolean isChangingStateIsGood = changeInfo(paletteInfo, location);
+      /*  boolean isChangingStateIsGood = changeInfo(paletteInfo, location);
         if (!isChangingStateIsGood) {
 
             JSONObject response = new JSONObject();
@@ -211,16 +211,16 @@ public class SupplyController {
 
                 return ResponseEntity.ok(response.toString());
             }
-
-
-            return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
-        }
-
+*/
+        changeInfo(paletteInfo, location);
+        addProductToStack(location, paletteInfo);
+        return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
     }
 
 
+
     //zmaina stanu na palecie  bierzemy porudkt z palety  i porudlt z requestu sprawdziamy czy ten ktory zjest z requestu jest w tej lokalizacji
-    private boolean changeInfo(Palette paletteInfo, List<Location> location) {
+    private void changeInfo(Palette paletteInfo, List<Location> location) {
 
         for (UsedProduct productToSave : paletteInfo.getUsedProducts()) {
             for (Location oneLocation : location) {
@@ -231,8 +231,8 @@ public class SupplyController {
 
 
                         if (productFromRequest.getState() > productToSave.getQuanitity()) {
-                            System.out.println("wiazlen  "+productFromRequest.getState()+" a mam max "+productToSave.getQuanitity());
-                           // return false;
+                            System.out.println("wiazlen  " + productFromRequest.getState() + " a mam max " + productToSave.getQuanitity());
+                            // return false;
                         } else {
                             productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
                         }
@@ -250,10 +250,10 @@ public class SupplyController {
 
             }
         }
-        return true;
+        // return true;
     }
 
-    private boolean addProductToStack(List<Location> locationListWithInfo, Palette paletteInfo) {
+    private void addProductToStack(List<Location> locationListWithInfo, Palette paletteInfo) {
 
         for (Location oneLocation : locationListWithInfo) {
             String barCodeLocation = oneLocation.getBarCodeLocation();
@@ -293,7 +293,7 @@ public class SupplyController {
 
             }
         }
-        return true;
+        // return true;
     }
 
     private boolean checkIfProductWasPicekd(Product productToAddToStack, Palette paletteInfo) {
