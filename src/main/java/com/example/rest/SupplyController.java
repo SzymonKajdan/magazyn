@@ -260,7 +260,7 @@ public class SupplyController {
             Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
 
             if (locationInWareHosue == null) {
-                System.out.println("tutaj 1 ");
+                System.out.println("tutaj 3 ");
                 return false;
             }
 
