@@ -58,7 +58,7 @@ public class SupplyController {
         jsonObject.put("id", supply.getId());
         jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
         jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
-        jsonObject.put("arriveDate",supply.getArriveDate());
+
         int amountOfPalletes = supply.getPalettes().size();
         jsonObject.put("aomuntOfPalletes", amountOfPalletes);
 
