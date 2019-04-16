@@ -58,7 +58,7 @@ public class SupplyController {
         jsonObject.put("id", supply.getId());
         jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
         jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
-        jsonObject.put("arriveDate",supply.getArriveDate());
+        jsonObject.put("arriveDate", supply.getArriveDate());
         int amountOfPalletes = supply.getPalettes().size();
         jsonObject.put("aomuntOfPalletes", amountOfPalletes);
 
@@ -185,6 +185,7 @@ public class SupplyController {
     public ResponseEntity<?> SpreadingGoods(@RequestBody String supplyRequest) {
 
         JSONObject request = new JSONObject(supplyRequest);
+        System.out.println(request.toString());
         String barCode = request.get("barCode").toString();
 
         Palette paletteInfo = paletteRepository.findByBarCode(barCode);
@@ -195,6 +196,7 @@ public class SupplyController {
 
         boolean isChangingStateIsGood = changeInfo(paletteInfo, location);
         if (!isChangingStateIsGood) {
+
             JSONObject response = new JSONObject();
             response.put("Status", "error");
             return ResponseEntity.ok(response.toString());
@@ -206,6 +208,7 @@ public class SupplyController {
             if (!isProductsareAddedtoStack) {
                 JSONObject response = new JSONObject();
                 response.put("Status", "error");
+
                 return ResponseEntity.ok(response.toString());
             }
 
@@ -214,6 +217,7 @@ public class SupplyController {
         }
 
     }
+
 
     //zmaina stanu na palecie  bierzemy porudkt z palety  i porudlt z requestu sprawdziamy czy ten ktory zjest z requestu jest w tej lokalizacji
     private boolean changeInfo(Palette paletteInfo, List<Location> location) {
@@ -262,8 +266,8 @@ public class SupplyController {
 
                 if (staticProduct == null) return false;
 
-                boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
-                if (isPorductPicked) return false;
+                //  boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
+                // if (isPorductPicked) return false;
 
 
                 staticProduct.setLogicState(staticProduct.getLogicState() + productToAddToStack.getState());
@@ -290,9 +294,12 @@ public class SupplyController {
 
         System.out.println(usedProduct.getQuanitity());
 
-        if (usedProduct.getQuanitity() == 0) {
+        if (usedProduct.isPicked()) {
+
             return true;
+
         } else {
+
             return false;
         }
 
