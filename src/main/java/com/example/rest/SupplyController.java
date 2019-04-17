@@ -188,113 +188,109 @@ public class SupplyController {
         System.out.println(request.toString());
         String barCode = request.get("barCode").toString();
 
-        Palette paletteInfo = paletteRepository.findByBarCode(barCode);
-
-        JSONArray locationArray = request.getJSONArray("locations");
-        List<Location> location = locationParser(locationArray.toString());
-
-
-      /*  boolean isChangingStateIsGood = changeInfo(paletteInfo, location);
-        if (!isChangingStateIsGood) {
-
+        Palette paletteInDb = paletteRepository.findByBarCode(barCode);
+        if  (paletteInDb==null){
             JSONObject response = new JSONObject();
-            response.put("Status", "error");
+            response.put("status", "PALLETE_"+barCode+"_NOT_EXIST");
             return ResponseEntity.ok(response.toString());
-        } else {
-            //dodanie produktu do lokaizacji i zmiana satnu na palecie
-            boolean isProductsareAddedtoStack = addProductToStack(location, paletteInfo);
-            System.out.println("status " + isProductsareAddedtoStack);
+        }
+        JSONArray locationArray = request.getJSONArray("locations");
+        List<Location> requestLocations = locationParser(locationArray.toString());
 
-            if (!isProductsareAddedtoStack) {
+        String locationStatus = cheeckLocations(requestLocations);
+
+        if (locationStatus.equals("OK")) {
+            String statusOfSpreadingGoods = getGoodsFromPaletteToLocation(paletteInDb, requestLocations);
+            if(!statusOfSpreadingGoods.equals("OK")){
                 JSONObject response = new JSONObject();
-                response.put("Status", "error");
-
+                response.put("status", statusOfSpreadingGoods);
+                return ResponseEntity.ok(response.toString());
+            }else{
+                JSONObject response=new JSONObject();
+                response.put("status","OK");
                 return ResponseEntity.ok(response.toString());
             }
-*/
-        changeInfo(paletteInfo, location);
-        addProductToStack(location, paletteInfo);
-        return ResponseEntity.ok(new JSONObject().put("Status", "ok").toString());
+
+        } else {
+            JSONObject response = new JSONObject();
+            response.put("status", locationStatus);
+            return ResponseEntity.ok(response.toString());
+
+        }
+
     }
 
+    private String getGoodsFromPaletteToLocation(Palette paletteInDb, List<Location> requestLocations) {
+        for (Location location : requestLocations) {
+            for (Product p : location.getProducts()) {
+                String barCode = p.getStaticProduct().getBarCode();
+                StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
+                if (staticProduct == null) {
+                    return "Product_" + barCode + "_NOT_EXIST";
+                } else {
 
-
-    //zmaina stanu na palecie  bierzemy porudkt z palety  i porudlt z requestu sprawdziamy czy ten ktory zjest z requestu jest w tej lokalizacji
-    private void changeInfo(Palette paletteInfo, List<Location> location) {
-
-        for (UsedProduct productToSave : paletteInfo.getUsedProducts()) {
-            for (Location oneLocation : location) {
-                for (Product productFromRequest : oneLocation.getProducts()) {
-                    System.out.println(productFromRequest.getStaticProduct().getBarCode());
-                    if (productToSave.getBarCodeProduct().equals(productFromRequest.getStaticProduct().getBarCode())) {
-                        System.out.println(productToSave.getBarCodeProduct());
-
-
-                        if (productFromRequest.getState() > productToSave.getQuanitity()) {
-                            System.out.println("wiazlen  " + productFromRequest.getState() + " a mam max " + productToSave.getQuanitity());
-                            // return false;
-                        } else {
-                            productToSave.setQuanitity(productToSave.getQuanitity() - productFromRequest.getState());
-                        }
-
-                        if (productToSave.getQuanitity() == 0) {
-                            productToSave.setPicked(true);
-                            usedProductRepository.save(productToSave);
-
-                        } else {
-                            usedProductRepository.save(productToSave);
-
+                    UsedProduct productInThePalette = findInPalette(paletteInDb, barCode);
+                    if (productInThePalette == null) {
+                        return "Product_" + barCode + "_NOT_EXIST_IN_PALETTE" + paletteInDb.getBarCode();
+                    } else {
+                        boolean isSpredingSucces = spreadGood(location, productInThePalette, p, staticProduct);
+                        if (!isSpredingSucces) {
+                            return "SPREADING_ERROR";
                         }
                     }
+
                 }
-
             }
         }
-        // return true;
+        return "OK";
+
     }
 
-    private void addProductToStack(List<Location> locationListWithInfo, Palette paletteInfo) {
-
-        for (Location oneLocation : locationListWithInfo) {
-            String barCodeLocation = oneLocation.getBarCodeLocation();
-
-            Location locationInWareHosue = locationRepository.findByBarCodeLocation(barCodeLocation);
-
-//            if (locationInWareHosue == null) {
-//                System.out.println("lokaizajca jest nullem "+barCodeLocation);
-//
-//                return false;
-//            }
-
-            for (Product productToAddToStack : oneLocation.getProducts()) {
-                String barCode = productToAddToStack.getStaticProduct().getBarCode();
-                StaticProduct staticProduct = staticProductRepository.findByBarCode(barCode);
-//
-//
-//                if (staticProduct == null) {
-//                    System.out.println("nie ma takiego pridutku  "+barCode);
-//                    return false;
-//                }
-                //  boolean isPorductPicked = checkIfProductWasPicekd(productToAddToStack, paletteInfo);
-                // if (isPorductPicked) return false;
-
-
-                staticProduct.setLogicState(staticProduct.getLogicState() + productToAddToStack.getState());
-
-                //System.out.println(locationInWareHosue.getBarCodeLocation());
-                productToAddToStack.setStaticProduct(staticProduct);
-                productToAddToStack.setLocations(new ArrayList<>());
-                productToAddToStack.getLocations().add(locationInWareHosue);
-
-                productRepository.save(productToAddToStack);
-
-                staticProduct.getProducts().add(productToAddToStack);
-                staticProductRepository.save(staticProduct);
-
+    private boolean spreadGood(Location location, UsedProduct productInThePalette, Product p, StaticProduct productInDb) {
+        if (productInThePalette.getQuanitity() < p.getState()) {
+            return false;
+        } else {
+            int quantityInPalette = productInThePalette.getQuanitity();
+            productInThePalette.setQuanitity(quantityInPalette - p.getState());
+            if (productInThePalette.getQuanitity() == 0) {
+                productInThePalette.setPicked(true);
             }
+
+            String barCodeLocationOfProdcutNewPart = location.getBarCodeLocation();
+            Location locationInDb = locationRepository.findByBarCodeLocation(barCodeLocationOfProdcutNewPart);
+
+            int loggicState = productInDb.getLogicState();
+            productInDb.setLogicState(loggicState + p.getState());
+
+            p.setStaticProduct(productInDb);
+            p.setLocations(new ArrayList<>());
+            p.getLocations().add(locationInDb);
+            productRepository.save(p);
+
+            productInDb.getProducts().add(p);
+            staticProductRepository.save(productInDb);
+
+            return true;
         }
-        // return true;
     }
+
+    private UsedProduct findInPalette(Palette paletteInDb, String barCode) {
+        UsedProduct usedProduct = paletteInDb.getUsedProducts().stream().filter(x -> x.getBarCodeProduct().equals(barCode)).findFirst().orElse(null);
+        return usedProduct;
+    }
+
+    private String cheeckLocations(List<Location> requestLocations) {
+
+        for (Location location : requestLocations) {
+            Location inDb = locationRepository.findByBarCodeLocation(location.getBarCodeLocation());
+            if (inDb == null) {
+                return "NO_LOCATION_" + location.getBarCodeLocation();
+            }
+
+        }
+        return "OK";
+    }
+
 
     private boolean checkIfProductWasPicekd(Product productToAddToStack, Palette paletteInfo) {
         UsedProduct usedProduct = paletteInfo.getUsedProducts().stream().filter
