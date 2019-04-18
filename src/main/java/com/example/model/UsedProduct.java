@@ -2,6 +2,7 @@ package com.example.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 @Entity
 @Table(name = "USEDPRODUCT")
@@ -24,6 +25,8 @@ public class UsedProduct {
     private boolean isPicked;
 
     private Long idStaticProduct;
+
+    private Date exprDate;
 
     public Long getId() {
         return id;
@@ -63,5 +66,13 @@ public class UsedProduct {
 
     public void setIdStaticProduct(Long idStaticProduct) {
         this.idStaticProduct = idStaticProduct;
+    }
+
+    public Date getExprDate() {
+        return exprDate;
+    }
+
+    public void setExprDate(Date exprDate) {
+        this.exprDate = exprDate;
     }
 }

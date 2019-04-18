@@ -261,7 +261,7 @@ public class SupplyController {
 
             int loggicState = productInDb.getLogicState();
             productInDb.setLogicState(loggicState + p.getState());
-
+            p.setExprDate(productInThePalette.getExprDate());
             p.setStaticProduct(productInDb);
             p.setLocations(new ArrayList<>());
             p.getLocations().add(locationInDb);
@@ -315,6 +315,9 @@ public class SupplyController {
         for (Palette pallete : palettes) {
 
             for (UsedProduct product : pallete.getUsedProducts()) {
+                if(product.getExprDate()==null){
+                    product.setExprDate(new DateTime().plusYears(1).toDate());
+                }
                 usedProductRepository.save(product);
             }
         }
