@@ -40,7 +40,7 @@ public class LocationController {
 
 
         } else {
-            return ResponseEntity.ok(new JSONObject().put("Status", "BadBarCode").toString());
+            return ResponseEntity.ok(null);
         }
     }
 
