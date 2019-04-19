@@ -235,6 +235,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             usedProduct.setIdStaticProduct((long) 1);
             usedProduct.setBarCodeProduct("1655409103");
             usedProduct.setQuanitity(800);
+            usedProduct.setExprDate(new Date());
             usedProductRepository.save(usedProduct);
             palette.setBarCode("123");
             palette.setUsedProducts(new ArrayList<>(Arrays.asList(usedProduct)));
