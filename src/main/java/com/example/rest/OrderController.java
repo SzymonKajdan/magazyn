@@ -279,8 +279,8 @@ public class OrderController {
         JSONObject json = new JSONObject(request);
         //HashMap<Long,Integer> productsMap = (HashMap<Long, Integer>) json.get("products");
 
-        System.out.println("Tutaj: " + json.getJSONArray("products"));
-        System.out.println("tutaj" + json.get("principalID"));
+        //System.out.println("Tutaj: " + json.getJSONArray("products"));
+        //System.out.println("tutaj" + json.get("principalID"));
         JSONArray productsJsonArray = json.getJSONArray("products");
 
         double price = 0.0;
@@ -385,7 +385,17 @@ public class OrderController {
         JSONObject returnJson = new JSONObject();
 
         long orderID = json.getLong("orderID");
-        Order o = orderRepository.getOne(orderID);
+
+        Optional<Order> o_optional = orderRepository.findById(orderID);
+
+        if(!o_optional.isPresent()){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Order o = o_optional.get();
 
         JSONArray jsonArray = json.getJSONArray("products");
 
@@ -448,6 +458,86 @@ public class OrderController {
         }
     }
 
+    @RequestMapping(path = "/completing", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> completingOrder2(@RequestBody String request) {
+
+        JSONObject json = new JSONObject(request);
+        JSONObject returnJson = new JSONObject();
+
+        long orderID = json.getLong("orderID");
+
+        Optional<Order> o_optional = orderRepository.findById(orderID);
+
+        if(!o_optional.isPresent()){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Order o = o_optional.get();
+
+        long prodID = json.getJSONObject("product").getLong("productID");
+        Optional<Product> p_optional = productRepository.findById(prodID);
+
+        if(!p_optional.isPresent()){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Produkt o id "+prodID+" nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Product p = p_optional.get();
+
+        int quantity = json.getJSONObject("product").getInt("quantity");
+
+        if(p.getState()<quantity){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Wybranego produktu jest za malo");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        for (UsedProduct x : o.getUsedProductList()) {
+
+            if(x.getIdStaticProduct()==p.getStaticProduct().getId()){
+
+                if(x.isPicked()){
+                    returnJson.put("success", false);
+                    returnJson.put("status", "ERROR");
+                    returnJson.put("message", "Produkt byl juz skompletowany");
+                    return ResponseEntity.ok(returnJson.toString());
+                }
+
+                if (x.getQuanitity()-x.getPickedQuanitity()>=quantity){
+
+                    x.setPickedQuanitity(x.getPickedQuanitity()+quantity);
+                    if(x.getQuanitity()==x.getPickedQuanitity()){
+                        x.setPicked(true);
+                    }
+                    p.setState(p.getState()-quantity);
+                    usedProductRepository.save(x);
+                    productRepository.save(p);
+                    returnJson.put("success", true);
+                    returnJson.put("status", "OK");
+                    returnJson.put("message", "Skompletowano produkt, do skompletowania zostalo "+(x.getQuanitity()-x.getPickedQuanitity())+" sztuk");
+                    return ResponseEntity.ok(returnJson.toString());
+                }
+                else {
+                    returnJson.put("success", false);
+                    returnJson.put("status", "ERROR");
+                    returnJson.put("message", "Zla ilosc produktu");
+                    return ResponseEntity.ok(returnJson.toString());
+                }
+            }
+        }
+
+        returnJson.put("success", false);
+        returnJson.put("status", "ERROR");
+        returnJson.put("message", "Zly produkt");
+        return ResponseEntity.ok(returnJson.toString());
+    }
+
     @RequestMapping(path = "/end", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> endOrder(@RequestBody String request) {
 
@@ -456,12 +546,33 @@ public class OrderController {
 
         long orderID = json.getLong("orderID");
 
-        Order o = orderRepository.getOne(orderID);
+        Optional<Order> o_optional = orderRepository.findById(orderID);
+
+        if(!o_optional.isPresent()){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Order o = o_optional.get();
+
+        for (UsedProduct usedProduct : o.getUsedProductList()) {
+            if(!usedProduct.isPicked()){
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Order nie jest skompletowany");
+                return ResponseEntity.ok(returnJson.toString());
+            }
+        }
+
         o.setEndDate(new Date());
 
         orderRepository.save(o);
 
         returnJson.put("success", true);
+        returnJson.put("status", "OK");
+        returnJson.put("message", "Zamowienie zaakceptowane");
         return ResponseEntity.ok(returnJson.toString());
     }
 }

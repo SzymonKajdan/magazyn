@@ -17,6 +17,9 @@ public class UsedProduct {
     @NotNull
     private int quanitity;
 
+    @Column(name = "pickedQuanitity")
+    private int pickedQuanitity=0;
+
     @Column(name = "BARCODE")
 
     private String barCodeProduct;
@@ -74,5 +77,13 @@ public class UsedProduct {
 
     public void setExprDate(Date exprDate) {
         this.exprDate = exprDate;
+    }
+
+    public int getPickedQuanitity() {
+        return pickedQuanitity;
+    }
+
+    public void setPickedQuanitity(int pickedQuanitity) {
+        this.pickedQuanitity = pickedQuanitity;
     }
 }

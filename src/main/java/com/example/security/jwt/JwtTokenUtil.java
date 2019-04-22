@@ -67,7 +67,8 @@ public class JwtTokenUtil implements Serializable {
     private Boolean ignoreTokenExpiration(String token) {
         // here you specify tokens, for that the expiration is ignored
 
-        if(token.equals("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU1NTg1MDA5NiwiaWF0IjoxNTU1MjQ1Mjk2fQ.gCfVkUZhYDL0DMrRnsliKyijQIvoV13ujYf0Q_pMfb-FdGZ3Xi84ewj_d4aRXnHupDDsRJEQZk6d6f5TDbTU8w")){
+        if(token.equals("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU1NTg1MDA5NiwiaWF0IjoxNTU1MjQ1Mjk2fQ.gCfVkUZhYDL0DMrRnsliKyijQIvoV13ujYf0Q_pMfb-FdGZ3Xi84ewj_d4aRXnHupDDsRJEQZk6d6f5TDbTU8w")||
+                token.equals("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTU1NjU2ODk1NSwiaWF0IjoxNTU1OTY0MTU1fQ.pXHA-fFfvgCHDx5ICFwj-fXi6Ps7rkHzouCxUPqG2wuyTASeJ2nhkxDL2NRjdnnb6mXyfpimamo03Qf7h6hNZA")){
             return true;
         }
 
