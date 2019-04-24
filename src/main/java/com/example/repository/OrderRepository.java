@@ -24,4 +24,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order>findAllByUserIsNullAndEndDateIsNull();
 
     Order findByEndDateIsNullAndUser(User u);
+
+    List<Order>findAllByEndDateBetweenAndUser(Date start,Date end,User u );
 }

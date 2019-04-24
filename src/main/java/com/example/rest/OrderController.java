@@ -57,6 +57,55 @@ public class OrderController {
         }
     }
 
+    @RequestMapping(path = "/statsOfOrdersEndedByUser", method = RequestMethod.GET)
+    public ResponseEntity<?> statsOfOrdersEndedByUser() {
+        String username;
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        username = userDetails.getUsername();
+        User user = userRepository.findByUsername(username);
+        JSONArray statsArray = createStatsArray(user);
+
+        return ResponseEntity.ok(statsArray.toString());
+    }
+
+    private JSONArray createStatsArray(User user) {
+        JSONArray statsArray = new JSONArray();
+        for (int i = 0; i < 7; i++) {
+            DateTime dateTimeStart = new DateTime().withHourOfDay(0).withMinuteOfHour(0).withMinuteOfHour(0).withSecondOfMinute(0);
+            dateTimeStart = dateTimeStart.minusDays(i);
+
+            DateTime dateTimeEnd = new DateTime().withHourOfDay(23).withMinuteOfHour(59).withMinuteOfHour(59).withSecondOfMinute(59);
+            dateTimeEnd = dateTimeEnd.minusDays(i);
+
+            List<Order> orders = orderRepository.findAllByEndDateBetweenAndUser(dateTimeStart.toDate(), dateTimeEnd.toDate(), user);
+            System.out.println(dateTimeStart+ " "+dateTimeEnd+" "+orders.size());
+            JSONObject jsonObjectDay = new JSONObject();
+
+            jsonObjectDay.put("Day", createDayJson(orders, dateTimeStart));
+
+            statsArray.put(jsonObjectDay);
+        }
+        return statsArray;
+    }
+
+    private JSONObject createDayJson(List<Order> orders, DateTime dateTime) {
+        JSONObject day = new JSONObject();
+
+
+        double palletes = orders.stream().mapToDouble(x -> countPalletes(x.getUsedProductList())).sum();
+        long sumPositions = orders.stream().mapToLong(x -> countArticles(x.getUsedProductList())).sum();
+
+        String date = new String();
+        date += dateTime.getDayOfMonth() + "." + dateTime.getMonthOfYear() + "." + dateTime.getYear();
+
+        day.put("amountOfOrders", orders.size());
+        day.put("palettes", palletes);
+        day.put("amountOfPositions", sumPositions);
+        day.put("date", date);
+
+        return day;
+    }
+
     @RequestMapping(path = "/amountOfNotEndedOrders", method = RequestMethod.GET)
     public ResponseEntity<?> amountOfNotEndedOrders() {
         List<Order> ordersNotEnded = orderRepository.findAllByUserIsNullAndEndDateIsNull();
@@ -388,10 +437,10 @@ public class OrderController {
 
         Optional<Order> o_optional = orderRepository.findById(orderID);
 
-        if(!o_optional.isPresent()){
+        if (!o_optional.isPresent()) {
             returnJson.put("success", false);
             returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
             return ResponseEntity.ok(returnJson.toString());
         }
 
@@ -468,10 +517,10 @@ public class OrderController {
 
         Optional<Order> o_optional = orderRepository.findById(orderID);
 
-        if(!o_optional.isPresent()){
+        if (!o_optional.isPresent()) {
             returnJson.put("success", false);
             returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
             return ResponseEntity.ok(returnJson.toString());
         }
 
@@ -480,10 +529,10 @@ public class OrderController {
         long prodID = json.getJSONObject("product").getLong("productID");
         Optional<Product> p_optional = productRepository.findById(prodID);
 
-        if(!p_optional.isPresent()){
+        if (!p_optional.isPresent()) {
             returnJson.put("success", false);
             returnJson.put("status", "ERROR");
-            returnJson.put("message", "Produkt o id "+prodID+" nie istnieje");
+            returnJson.put("message", "Produkt o id " + prodID + " nie istnieje");
             return ResponseEntity.ok(returnJson.toString());
         }
 
@@ -491,7 +540,7 @@ public class OrderController {
 
         int quantity = json.getJSONObject("product").getInt("quantity");
 
-        if(p.getState()<quantity){
+        if (p.getState() < quantity) {
             returnJson.put("success", false);
             returnJson.put("status", "ERROR");
             returnJson.put("message", "Wybranego produktu jest za malo");
@@ -500,30 +549,29 @@ public class OrderController {
 
         for (UsedProduct x : o.getUsedProductList()) {
 
-            if(x.getIdStaticProduct()==p.getStaticProduct().getId()){
+            if (x.getIdStaticProduct() == p.getStaticProduct().getId()) {
 
-                if(x.isPicked()){
+                if (x.isPicked()) {
                     returnJson.put("success", false);
                     returnJson.put("status", "ERROR");
                     returnJson.put("message", "Produkt byl juz skompletowany");
                     return ResponseEntity.ok(returnJson.toString());
                 }
 
-                if (x.getQuanitity()-x.getPickedQuanitity()>=quantity){
+                if (x.getQuanitity() - x.getPickedQuanitity() >= quantity) {
 
-                    x.setPickedQuanitity(x.getPickedQuanitity()+quantity);
-                    if(x.getQuanitity()==x.getPickedQuanitity()){
+                    x.setPickedQuanitity(x.getPickedQuanitity() + quantity);
+                    if (x.getQuanitity() == x.getPickedQuanitity()) {
                         x.setPicked(true);
                     }
-                    p.setState(p.getState()-quantity);
+                    p.setState(p.getState() - quantity);
                     usedProductRepository.save(x);
                     productRepository.save(p);
                     returnJson.put("success", true);
                     returnJson.put("status", "OK");
-                    returnJson.put("message", "Skompletowano produkt, do skompletowania zostalo "+(x.getQuanitity()-x.getPickedQuanitity())+" sztuk");
+                    returnJson.put("message", "Skompletowano produkt, do skompletowania zostalo " + (x.getQuanitity() - x.getPickedQuanitity()) + " sztuk");
                     return ResponseEntity.ok(returnJson.toString());
-                }
-                else {
+                } else {
                     returnJson.put("success", false);
                     returnJson.put("status", "ERROR");
                     returnJson.put("message", "Zla ilosc produktu");
@@ -548,17 +596,17 @@ public class OrderController {
 
         Optional<Order> o_optional = orderRepository.findById(orderID);
 
-        if(!o_optional.isPresent()){
+        if (!o_optional.isPresent()) {
             returnJson.put("success", false);
             returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id "+orderID+" nie istnieje");
+            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
             return ResponseEntity.ok(returnJson.toString());
         }
 
         Order o = o_optional.get();
 
         for (UsedProduct usedProduct : o.getUsedProductList()) {
-            if(!usedProduct.isPicked()){
+            if (!usedProduct.isPicked()) {
                 returnJson.put("success", false);
                 returnJson.put("status", "ERROR");
                 returnJson.put("message", "Order nie jest skompletowany");
