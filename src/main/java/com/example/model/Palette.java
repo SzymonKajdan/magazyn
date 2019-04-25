@@ -2,6 +2,7 @@ package com.example.model;
 
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -12,7 +13,8 @@ public class Palette {
     @SequenceGenerator(name = "palette_seq", sequenceName = "palette_seq", allocationSize = 1)
     private Long id;
 
-    @Column(name = "BARCODE")
+    @Column(name = "BARCODE",unique = true)
+    @NotNull
     private String barCode;
 
     @ManyToMany

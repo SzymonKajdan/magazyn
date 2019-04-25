@@ -2,6 +2,9 @@ package com.example.rest;
 
 import com.example.model.Principal;
 import com.example.repository.PrincipalRepository;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -144,6 +147,18 @@ public class WorkerController {
         jo.put("status", "ERROR");
         jo.put("message","NIE ZNALEZIONO");
         return new ResponseEntity<>(jo.toString(), HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(path ="getTime",method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?>geTime(){
+        DateTime dateTime=new DateTime();
+        String date = new String();
+        date = dateTime.toString(DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss"));
+
+        JSONObject response=new JSONObject();
+        response.put("time",date);
+        return ResponseEntity.ok(response.toString());
+
     }
 
     @RequestMapping(path = "/find", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

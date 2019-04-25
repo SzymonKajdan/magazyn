@@ -19,7 +19,8 @@ public class Supply {
     @Column(name = "TYPEOFSUPPLY")
     private  String typeOfSupply;
 
-    @Column(name = "BARCODEOFSUPPLY")
+    @Column(name = "BARCODEOFSUPPLY",unique = true)
+    @NotNull
     private  String barCodeOfSupply;
 
 

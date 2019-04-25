@@ -54,28 +54,33 @@ public class SupplyController {
     }
 
     private JSONObject createSupplyResponse(Supply supply) {
+        JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject = new JSONObject();
+        int amountOfPalletes = supply.getPalettes().size();
+
         jsonObject.put("id", supply.getId());
         jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
         jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
         jsonObject.put("arriveDate", supply.getArriveDate());
-        int amountOfPalletes = supply.getPalettes().size();
         jsonObject.put("aomuntOfPalletes", amountOfPalletes);
 
-        JSONArray jsonArray = new JSONArray();
+
         supply.getPalettes().forEach((x) -> {
             jsonArray.put(createListOfPalletesToJson(x));
 
         });
+
         jsonObject.put("palletes", jsonArray);
         return jsonObject;
     }
 
     private JSONObject createListOfPalletesToJson(Palette palette) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", palette.getId());
         int amountOfProducts = palette.getUsedProducts().stream().mapToInt(x -> x.getQuanitity()).sum();
+
+        jsonObject.put("id", palette.getId());
         jsonObject.put("amountOfProducts", amountOfProducts);
+
         return jsonObject;
     }
 
@@ -93,7 +98,9 @@ public class SupplyController {
     //Zwraca Wszytskie aktwyne zaopatrzenia
     @RequestMapping(path = "/Supply/GetActiveSupplies", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getActiveSupplies() {
+
         return ResponseEntity.ok(supplyRepository.findByStatus(false));
+
     }
 
     //Zakoncznie rozkaldania zaopatrzenia
@@ -132,6 +139,21 @@ public class SupplyController {
         Supply supply = supplyParser(supplyRequest);
         String barCodeOfSupply = supply.getBarCodeOfSupply();
         boolean statusIfSupplyNotExist = checkThatSupplyBarCodeIsUnique(barCodeOfSupply);
+        boolean statusOfBarCodePalettes = checkThatBarCodeOfPalettesIsNotNull(supply.getPalettes());
+
+        if (statusOfBarCodePalettes == false) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "PaletteBarCodeNull");
+            return ResponseEntity.ok(response.toString());
+        }
+
+        if (barCodeOfSupply == null) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "BarCodeNull");
+            return ResponseEntity.ok(response.toString());
+        }
+
+
         if (statusIfSupplyNotExist) {
             JSONObject response = new JSONObject();
             response.put("Status", "SupplyExist");
@@ -156,6 +178,16 @@ public class SupplyController {
                 return ResponseEntity.ok(response.toString());
             }
         }
+    }
+
+    private boolean checkThatBarCodeOfPalettesIsNotNull(List<Palette> paletteList) {
+        for (Palette palette : paletteList) {
+            String barCode = palette.getBarCode();
+            if (barCode == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean checkUniqueBarCodeOfPalettes(List<Palette> palettes) {
@@ -189,9 +221,9 @@ public class SupplyController {
         String barCode = request.get("barCode").toString();
 
         Palette paletteInDb = paletteRepository.findByBarCode(barCode);
-        if  (paletteInDb==null){
+        if (paletteInDb == null) {
             JSONObject response = new JSONObject();
-            response.put("status", "PALLETE_"+barCode+"_NOT_EXIST");
+            response.put("status", "PALLETE_" + barCode + "_NOT_EXIST");
             return ResponseEntity.ok(response.toString());
         }
         JSONArray locationArray = request.getJSONArray("locations");
@@ -201,13 +233,13 @@ public class SupplyController {
 
         if (locationStatus.equals("OK")) {
             String statusOfSpreadingGoods = getGoodsFromPaletteToLocation(paletteInDb, requestLocations);
-            if(!statusOfSpreadingGoods.equals("OK")){
+            if (!statusOfSpreadingGoods.equals("OK")) {
                 JSONObject response = new JSONObject();
                 response.put("status", statusOfSpreadingGoods);
                 return ResponseEntity.ok(response.toString());
-            }else{
-                JSONObject response=new JSONObject();
-                response.put("status","OK");
+            } else {
+                JSONObject response = new JSONObject();
+                response.put("status", "OK");
                 return ResponseEntity.ok(response.toString());
             }
 
@@ -315,7 +347,7 @@ public class SupplyController {
         for (Palette pallete : palettes) {
 
             for (UsedProduct product : pallete.getUsedProducts()) {
-                if(product.getExprDate()==null){
+                if (product.getExprDate() == null) {
                     product.setExprDate(new DateTime().plusYears(1).toDate());
                 }
                 usedProductRepository.save(product);
