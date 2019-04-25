@@ -3,6 +3,7 @@ package com.example.rest;
 import com.example.model.Principal;
 import com.example.repository.PrincipalRepository;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONObject;
@@ -153,7 +154,7 @@ public class WorkerController {
     public ResponseEntity<?>geTime(){
         DateTime dateTime=new DateTime();
         String date = new String();
-        date = dateTime.toString(DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss"));
+        date = dateTime.toString(DateTimeFormat.forPattern("dd.MM.yyyy HH:mm:ss").withZone(DateTimeZone.forID("Europe/Warsaw")));
 
         JSONObject response=new JSONObject();
         response.put("time",date);
