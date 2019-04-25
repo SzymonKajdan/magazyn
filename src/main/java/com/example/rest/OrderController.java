@@ -79,7 +79,7 @@ public class OrderController {
             dateTimeEnd = dateTimeEnd.minusDays(i);
 
             List<Order> orders = orderRepository.findAllByEndDateBetweenAndUser(dateTimeStart.toDate(), dateTimeEnd.toDate(), user);
-           // System.out.println(dateTimeStart+ " "+dateTimeEnd+" "+orders.size());
+
             JSONObject jsonObjectDay = new JSONObject();
 
             jsonObjectDay.put("Day", createDayJson(orders, dateTimeStart));
