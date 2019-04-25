@@ -4,6 +4,7 @@ import com.example.model.*;
 import com.example.repository.*;
 import com.example.security.model.User;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ public class OrderController {
             dateTimeEnd = dateTimeEnd.minusDays(i);
 
             List<Order> orders = orderRepository.findAllByEndDateBetweenAndUser(dateTimeStart.toDate(), dateTimeEnd.toDate(), user);
-            System.out.println(dateTimeStart+ " "+dateTimeEnd+" "+orders.size());
+           // System.out.println(dateTimeStart+ " "+dateTimeEnd+" "+orders.size());
             JSONObject jsonObjectDay = new JSONObject();
 
             jsonObjectDay.put("Day", createDayJson(orders, dateTimeStart));
@@ -96,8 +97,7 @@ public class OrderController {
         long sumPositions = orders.stream().mapToLong(x -> countArticles(x.getUsedProductList())).sum();
 
         String date = new String();
-        date += dateTime.getDayOfMonth() + "." + dateTime.getMonthOfYear() + "." + dateTime.getYear();
-
+        date = dateTime.toString(DateTimeFormat.forPattern("dd.MM.yyyy"));
         day.put("amountOfOrders", orders.size());
         day.put("palettes", palletes);
         day.put("amountOfPositions", sumPositions);
