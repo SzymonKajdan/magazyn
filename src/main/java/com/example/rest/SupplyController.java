@@ -132,7 +132,7 @@ public class SupplyController {
         return true;
     }
 
-    //dodowanie nowego zaopatrzenia z storny internetowej
+
     @RequestMapping(path = "/Supply/addSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> addSupply(@RequestBody String supplyRequest) {
 
