@@ -6,6 +6,7 @@ import com.example.security.model.Authority;
 import com.example.security.model.AuthorityName;
 import com.example.security.model.User;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -209,9 +210,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
             Order o1 = new Order();
             o1.setPrincipal(principal);
 
-
+            DateTimeZone zone = DateTimeZone.forID("Europe/Warsaw");
             DateTime dateTime = new DateTime().withHourOfDay(8);
-            dateTime = dateTime.plusDays(2);
+            dateTime = dateTime.plusDays(2).withZone(zone);
 
             o1.setDepartureDate(dateTime.toDate());
 
@@ -227,7 +228,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
             Supply sp = new Supply();
             Palette palette = new Palette();
-            sp.setArriveDate(new Date());
+            sp.setArriveDate(dateTime.toDate());
             sp.setStatus(false);
             sp.setTypeOfSupply("Dostawa");
             sp.setBarCodeOfSupply("1/2019/15/04");
