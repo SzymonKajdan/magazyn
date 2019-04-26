@@ -3,6 +3,7 @@ package com.example.rest;
 import com.example.model.*;
 import com.example.repository.*;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,36 +53,20 @@ public class SupplyController {
         }
 
     }
+    @RequestMapping(path = "/Supply/getSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> getSupply(@RequestBody String supplyRequest) {
+        JSONObject jsonObjectBarCode = new JSONObject(supplyRequest);
+        String barCode = jsonObjectBarCode.getString("barCodeOfSupply");
+        Supply supply = supplyRepository.findByBarCodeOfSupply(barCode);
+        if (supply != null) {
+            JSONObject supplyResponse = createSupplyJSON(supply);
+            return ResponseEntity.ok(supplyResponse.toString());
+        } else {
+            JSONObject respone = new JSONObject();
+            respone.put("Status", "Error");
+            return ResponseEntity.ok(respone.toString());
+        }
 
-    private JSONObject createSupplyResponse(Supply supply) {
-        JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject = new JSONObject();
-        int amountOfPalletes = supply.getPalettes().size();
-
-        jsonObject.put("id", supply.getId());
-        jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
-        jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
-        jsonObject.put("arriveDate", supply.getArriveDate());
-        jsonObject.put("aomuntOfPalletes", amountOfPalletes);
-
-
-        supply.getPalettes().forEach((x) -> {
-            jsonArray.put(createListOfPalletesToJson(x));
-
-        });
-
-        jsonObject.put("palletes", jsonArray);
-        return jsonObject;
-    }
-
-    private JSONObject createListOfPalletesToJson(Palette palette) {
-        JSONObject jsonObject = new JSONObject();
-        int amountOfProducts = palette.getUsedProducts().stream().mapToInt(x -> x.getQuanitity()).sum();
-
-        jsonObject.put("id", palette.getId());
-        jsonObject.put("amountOfProducts", amountOfProducts);
-
-        return jsonObject;
     }
 
     //zwraca wszystkie zaopatrzenia wraz z tymi które już były
@@ -114,6 +99,7 @@ public class SupplyController {
         //Metoda sprawdza czy  paleta zostala oprózniona
         if (chceckGoods(suppplyToSave.getPalettes())) {
             suppplyToSave.setStatus(true);
+
             supplyRepository.save(suppplyToSave);
 
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").toString());
@@ -160,7 +146,8 @@ public class SupplyController {
             return ResponseEntity.ok(response.toString());
         } else {
             saveUsedProduct(supply.getPalettes());
-            supply.setArriveDate(new DateTime().plusDays(4).toDate());
+
+            supply.setArriveDate(new DateTime().plusDays(4).withZone(DateTimeZone.forID("Europe/Warsaw")).toDate());
 
             boolean isPalettesBarCodesIsUnique = checkUniqueBarCodeOfPalettes(supply.getPalettes());
             if (isPalettesBarCodesIsUnique) {
@@ -354,5 +341,79 @@ public class SupplyController {
             }
         }
     }
+
+
+    private JSONObject createSupplyJSON(Supply supply) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject supplyJson=supplyToJSON(supply);
+
+        supply.getPalettes().forEach((x) -> {
+            jsonArray.put(createListOfPalletesToJsonWithInfoAboutProduct(x));
+
+        });
+
+        supplyJson.put("palletes", jsonArray);
+        return  supplyJson;
+    }
+
+    private  JSONObject supplyToJSON(Supply supply){
+        JSONObject jsonObject = new JSONObject();
+        int amountOfPalletes = supply.getPalettes().size();
+
+        jsonObject.put("id", supply.getId());
+        jsonObject.put("barCodeOfSupply", supply.getBarCodeOfSupply());
+        jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
+        jsonObject.put("arriveDate", supply.getArriveDate());
+        jsonObject.put("aomuntOfPalletes", amountOfPalletes);
+        return  jsonObject;
+    }
+    private JSONObject createListOfPalletesToJsonWithInfoAboutProduct(Palette palette) {
+        JSONObject jsonObject = paletteToJSON(palette);
+        jsonObject.put("product",createInfoAboutPallete(palette));
+
+        return jsonObject;
+
+    }
+
+    private JSONObject createInfoAboutPallete(Palette palette) {
+        JSONObject productInfo=new JSONObject();
+        for(UsedProduct p:palette.getUsedProducts()){
+            StaticProduct product=staticProductRepository.findByBarCode(p.getBarCodeProduct());
+
+            productInfo.put("name",product.getName());
+            productInfo.put("quanitity",p.getQuanitity());
+        }
+        return  productInfo;
+    }
+
+    private JSONObject createSupplyResponse(Supply supply) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject =supplyToJSON(supply);
+
+
+        supply.getPalettes().forEach((x) -> {
+            jsonArray.put(createListOfPalletesToJson(x));
+
+        });
+
+        jsonObject.put("palletes", jsonArray);
+        return jsonObject;
+    }
+
+    private JSONObject createListOfPalletesToJson(Palette palette) {
+        JSONObject palleteJson=paletteToJSON(palette);
+        return palleteJson;
+    }
+    private  JSONObject paletteToJSON(Palette palette){
+        JSONObject jsonObject = new JSONObject();
+        int amountOfProducts = palette.getUsedProducts().stream().mapToInt(x -> x.getQuanitity()).sum();
+
+        jsonObject.put("id", palette.getId());
+        jsonObject.put("amountOfProducts", amountOfProducts);
+
+
+        return jsonObject;
+    }
+
 }
 
