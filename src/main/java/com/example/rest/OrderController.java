@@ -114,8 +114,6 @@ public class OrderController {
         response.put("amount", size);
 
         return ResponseEntity.ok(size);
-
-
     }
 
     @RequestMapping(path = "/cancelMakingOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -167,7 +165,7 @@ public class OrderController {
 
             staticProductRepository.saveAll(sp_list);
 
-            orderRepository.delete(order);
+            //orderRepository.delete(order);
 
             returnJson.put("success", true);
             return ResponseEntity.ok(returnJson.toString());
