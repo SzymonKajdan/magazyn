@@ -118,7 +118,7 @@ public class OrderController {
 
     }
 
-    @RequestMapping(path = "/cancelMakingOrder", method = RequestMethod.POST)
+    @RequestMapping(path = "/cancelMakingOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> cancelMakingOrder(@RequestBody String request) {
         String username;
 
@@ -140,21 +140,41 @@ public class OrderController {
 
         Long id = jsonId.getLong("id");
 
+        JSONObject returnJson = new JSONObject();
 
         Order order = orderRepository.getOne(id);
 
         if (order != null) {
+
+            List<StaticProduct> sp_list = new ArrayList<>();
+
+            for (UsedProduct ud : order.getUsedProductList()) {
+                if(ud.getPickedQuanitity()>0){
+                    returnJson.put("success", false);
+                    returnJson.put("message", "Nie wszystkie produkty zostaly odlozone");
+
+                    return ResponseEntity.ok(returnJson.toString());
+                }
+
+                StaticProduct sp = staticProductRepository.findById(ud.getIdStaticProduct()).get();
+
+                sp.setLogicState(sp.getLogicState()+ud.getQuanitity());
+                sp_list.add(sp);
+            }
+
             order.setUser(null);
             orderRepository.save(order);
 
-            JSONObject returnJson = new JSONObject();
+            staticProductRepository.saveAll(sp_list);
+
+            orderRepository.delete(order);
+
             returnJson.put("success", true);
-
             return ResponseEntity.ok(returnJson.toString());
-        } else {
 
-            JSONObject returnJson = new JSONObject();
+        } else {
             returnJson.put("success", false);
+            returnJson.put("message", "Taki order nie istnieje");
 
             return ResponseEntity.ok(returnJson.toString());
         }
@@ -172,15 +192,12 @@ public class OrderController {
             for (UsedProduct usedProduct : order.getUsedProductList()) {
 
                 products.put(addProductsToOrder(usedProduct));
-
             }
             orderObject.put("products", products);
             jsonArrayOrders.put(orderObject);
-
         }
 
         return ResponseEntity.ok(jsonArrayOrders.toString());
-
     }
 
     @RequestMapping(path = "/findAllOrderByDateDsc", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -197,7 +214,6 @@ public class OrderController {
 
             jsonArrayToResponse.put(orderObject);
         }
-
 
         return ResponseEntity.ok(jsonArrayToResponse.toString());
     }
@@ -281,7 +297,10 @@ public class OrderController {
         productJSON.put("quantityInPackage", product.getAmountInAPack());
 
         jsonToReturn.put("product", productJSON);
-        jsonToReturn.put("quantity", usedProduct.getQuanitity());
+        jsonToReturn.put("orderedQuantity", usedProduct.getQuanitity());
+        jsonToReturn.put("quantity", usedProduct.getQuanitity()-usedProduct.getPickedQuanitity());
+        jsonToReturn.put("pickedQuantity",usedProduct.getPickedQuanitity());
+        jsonToReturn.put("isPicked",usedProduct.isPicked());
         return jsonToReturn;
     }
 
@@ -347,6 +366,7 @@ public class OrderController {
             usedProduct.setQuanitity(quantity);
             usedProduct.setPicked(false);
             usedProduct.setBarCodeProduct(staticProduct.getBarCode());
+            usedProduct.setUsedProductLots(new ArrayList<>());
 
             usedProductArrayList.add(usedProduct);
 
@@ -420,11 +440,6 @@ public class OrderController {
             username = "anonymousUser";
             return ResponseEntity.ok("ERROR");
         }
-//        catch (ParseException e) {
-//            e.printStackTrace();
-//        }
-
-        //return ResponseEntity.ok("ERROR");
     }
 
     @RequestMapping(path = "/complete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -586,6 +601,70 @@ public class OrderController {
         return ResponseEntity.ok(returnJson.toString());
     }
 
+    @RequestMapping(path = "/returning", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> returningOrder2(@RequestBody String request) {
+
+        JSONObject json = new JSONObject(request);
+        JSONObject returnJson = new JSONObject();
+
+        long orderID = json.getLong("orderID");
+
+        Optional<Order> o_optional = orderRepository.findById(orderID);
+
+        if (!o_optional.isPresent()) {
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Order o = o_optional.get();
+
+        long prodID = json.getLong("productID");
+        Optional<Product> p_optional = productRepository.findById(prodID);
+
+        if (!p_optional.isPresent()) {
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Produkt o id " + prodID + " nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        int quantity = json.getInt("quantity");
+
+        Product p = p_optional.get();
+
+        for (UsedProduct up : o.getUsedProductList()) {
+            if(up.getIdStaticProduct()==p.getStaticProduct().getId()){
+                int newQuantity = up.getPickedQuanitity()-quantity;
+
+                if(newQuantity<0){
+                    returnJson.put("success", false);
+                    returnJson.put("status", "ERROR");
+                    returnJson.put("message", "Zla ilosc");
+                    return ResponseEntity.ok(returnJson.toString());
+                }
+
+                up.setPickedQuanitity(newQuantity);
+
+                p.setState(p.getState()+quantity);
+
+                usedProductRepository.save(up);
+                productRepository.save(p);
+
+                returnJson.put("success", true);
+                returnJson.put("status", "OK");
+                returnJson.put("message", "Odlozono produkt");
+                return ResponseEntity.ok(returnJson.toString());
+            }
+        }
+
+        returnJson.put("success", false);
+        returnJson.put("status", "ERROR");
+        returnJson.put("message", "Podales zly produkt");
+        return ResponseEntity.ok(returnJson.toString());
+    }
+
     @RequestMapping(path = "/end", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> endOrder(@RequestBody String request) {
 
@@ -613,6 +692,8 @@ public class OrderController {
                 return ResponseEntity.ok(returnJson.toString());
             }
         }
+
+        //for(o.)
 
         o.setEndDate(new Date());
 

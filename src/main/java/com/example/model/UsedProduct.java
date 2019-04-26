@@ -3,6 +3,7 @@ package com.example.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "USEDPRODUCT")
@@ -30,6 +31,9 @@ public class UsedProduct {
     private Long idStaticProduct;
 
     private Date exprDate;
+
+    @OneToMany
+    private List<UsedProductLot> usedProductLots;
 
     public Long getId() {
         return id;
@@ -85,5 +89,13 @@ public class UsedProduct {
 
     public void setPickedQuanitity(int pickedQuanitity) {
         this.pickedQuanitity = pickedQuanitity;
+    }
+
+    public List<UsedProductLot> getUsedProductLots() {
+        return usedProductLots;
+    }
+
+    public void setUsedProductLots(List<UsedProductLot> usedProductLots) {
+        this.usedProductLots = usedProductLots;
     }
 }
