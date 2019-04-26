@@ -646,6 +646,7 @@ public class OrderController {
                 }
 
                 up.setPickedQuanitity(newQuantity);
+                up.setPicked(false);
 
                 p.setState(p.getState()+quantity);
 
