@@ -316,6 +316,8 @@ public class OrderController {
         return ResponseEntity.ok(jsonArray.toString());
     }
 
+    // cos
+
     private JSONObject addProductsToOrder(UsedProduct usedProduct) {
         System.out.println(usedProduct.getId() + " " + usedProduct.getQuanitity());
         StaticProduct product = staticProductRepository.getOne(usedProduct.getIdStaticProduct());
