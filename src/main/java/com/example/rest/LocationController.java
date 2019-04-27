@@ -60,7 +60,7 @@ public class LocationController {
             staticIfno.put("barCode", product.getStaticProduct().getBarCode());
             staticIfno.put("name", product.getStaticProduct().getName());
             staticIfno.put("logicState", product.getStaticProduct().getLogicState());
-            staticIfno.put("amountInPack",product.getStaticProduct().getAmountInAPack());
+            staticIfno.put("quantityInPackage",product.getStaticProduct().getAmountInAPack());
             staticLocation.put("barCodeLocation",product.getStaticProduct().getStaticLocation().getBarCodeLocation());
             staticIfno.put("staticLocations", staticLocation);
             object.put("id", product.getId());
