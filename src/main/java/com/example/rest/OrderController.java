@@ -94,7 +94,7 @@ public class OrderController {
 
 
         double palletes = orders.stream().mapToDouble(x -> countPalletes(x.getUsedProductList())).sum();
-        long sumPositions = orders.stream().mapToLong(x -> countArticles(x.getUsedProductList())).sum();
+        long sumPositions = orders.stream().mapToLong(x -> x.getUsedProductList().size()).sum();
 
         String date = new String();
         date = dateTime.toString(DateTimeFormat.forPattern("dd.MM.yyyy"));
@@ -339,6 +339,7 @@ public class OrderController {
 
         return sum;
     }
+
 
 
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

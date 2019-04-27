@@ -151,6 +151,7 @@ public class SupplyController {
 
             boolean isPalettesBarCodesIsUnique = checkUniqueBarCodeOfPalettes(supply.getPalettes());
             if (isPalettesBarCodesIsUnique) {
+                checkBarCodeOfProducts(supply.getPalettes());
 
                 paletteRepository.saveAll(supply.getPalettes());
                 supplyRepository.save(supply);
@@ -165,6 +166,18 @@ public class SupplyController {
                 return ResponseEntity.ok(response.toString());
             }
         }
+    }
+
+    private void checkBarCodeOfProducts(List<Palette> palettes) {
+        for(Palette p:palettes){
+            for(UsedProduct product:p.getUsedProducts()){
+
+                StaticProduct staticProduct=staticProductRepository.getOne(product.getIdStaticProduct());
+                product.setBarCodeProduct(staticProduct.getBarCode());
+
+            }
+        }
+
     }
 
     private boolean checkThatBarCodeOfPalettesIsNotNull(List<Palette> paletteList) {
@@ -375,15 +388,20 @@ public class SupplyController {
 
     }
 
-    private JSONObject createInfoAboutPallete(Palette palette) {
-        JSONObject productInfo=new JSONObject();
+    private JSONArray createInfoAboutPallete(Palette palette) {
+        JSONArray jsonArray=new JSONArray();
+
+        System.out.println("rozmair "+palette.getUsedProducts().size());
         for(UsedProduct p:palette.getUsedProducts()){
-            StaticProduct product=staticProductRepository.findByBarCode(p.getBarCodeProduct());
+            JSONObject productInfo=new JSONObject();
+            StaticProduct product=staticProductRepository.getOne(p.getIdStaticProduct());
 
             productInfo.put("name",product.getName());
             productInfo.put("quanitity",p.getQuanitity());
+            jsonArray.put(productInfo);
         }
-        return  productInfo;
+        System.out.println(jsonArray.toString());
+        return  jsonArray;
     }
 
     private JSONObject createSupplyResponse(Supply supply) {
