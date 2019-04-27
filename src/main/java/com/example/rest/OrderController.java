@@ -306,6 +306,10 @@ public class OrderController {
         for (Long id : ids) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("id",id);
+
+            Product p = productRepository.findById(id).get();
+
+            jsonObject.put("staticProduct",new JSONObject().put("id",p.getStaticProduct().getId()));
             jsonArray.put(jsonObject);
         }
 
