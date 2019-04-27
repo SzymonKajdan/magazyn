@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
 @RestController
@@ -34,6 +35,8 @@ public class OrderController {
     LocationRepository locationRepository;
     @Autowired
     StaticProductRepository staticProductRepository;
+    @Autowired
+    UsedProductLotRepository usedProductLotRepository;
 
 
     @RequestMapping(path = "/checkUserActiveOrder", method = RequestMethod.GET)
@@ -271,8 +274,42 @@ public class OrderController {
         returnJson.put("success", false);
 
         return ResponseEntity.ok(returnJson.toString());
+    }
 
+    @RequestMapping(path = "/completedProducts", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> completedProducts(@RequestBody String oderId) {
 
+        JSONObject returnJson = new JSONObject();
+
+        JSONObject requestJson = new JSONObject(oderId);
+        long orderID = requestJson.getLong("id");
+
+        Optional<Order> o_optional = orderRepository.findById(orderID);
+
+        if (!o_optional.isPresent()) {
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Order o = o_optional.get();
+        Set<Long> ids = new HashSet<>();
+
+        for (UsedProduct usedProduct : o.getUsedProductList()) {
+            for (UsedProductLot usedProductLot : usedProduct.getUsedProductLots()) {
+                ids.add(usedProductLot.getProductID());
+            }
+        }
+
+        JSONArray jsonArray = new JSONArray();
+        for (Long id : ids) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id",id);
+            jsonArray.put(jsonObject);
+        }
+
+        return ResponseEntity.ok(jsonArray.toString());
     }
 
     private JSONObject addProductsToOrder(UsedProduct usedProduct) {
@@ -442,228 +479,410 @@ public class OrderController {
         }
     }
 
-    @RequestMapping(path = "/complete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<?> completingOrder(@RequestBody String request) {
-
-        JSONObject json = new JSONObject(request);
-        JSONObject returnJson = new JSONObject();
-
-        long orderID = json.getLong("orderID");
-
-        Optional<Order> o_optional = orderRepository.findById(orderID);
-
-        if (!o_optional.isPresent()) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
-            return ResponseEntity.ok(returnJson.toString());
-        }
-
-        Order o = o_optional.get();
-
-        JSONArray jsonArray = json.getJSONArray("products");
-
-        List<UsedProduct> usedProductList = new ArrayList<>();
-        List<Product> productList = new ArrayList<>();
-        List<ProductIdWithQuantity> productIdWithQuantityList = new ArrayList<>();
-
-        Map<Long, ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
-
-        for (UsedProduct usedProduct : o.getUsedProductList()) {
-            ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
-            productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
-            productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
-            productIdWithQuantityList.add(productIdWithQuantity);
-
-            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(), new ProductIdWithQuantity(usedProduct.getIdStaticProduct(), usedProduct.getQuanitity()));
-
-            usedProduct.setPicked(true);
-            usedProductList.add(usedProduct);
-        }
-
-        for (int i = 0; i < jsonArray.length(); ++i) {
-
-            JSONObject jo = jsonArray.getJSONObject(i);
-            Location l = locationRepository.findByBarCodeLocation(jo.getString("locationBarCode"));
-            Product p = productRepository.findById(jo.getLong("productID")).get();
-            int quantiy = jo.getInt("quantity");
-
-            //System.out.println("XDD " + jsonArray.toString());
-            //System.out.println("XDDDDDDDDDDDDDDD " + jsonArray.length());
-
-            Long staticProductID = p.getStaticProduct().getId();
-            //System.out.println("XDD " + staticProductID);
-            productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity() - quantiy);
-
-            if (productIdWithQuantityMap.get(staticProductID).getQuantity() == 0) {
-                productIdWithQuantityMap.remove(staticProductID);
-            } else if (productIdWithQuantityMap.get(staticProductID).getQuantity() < 0) {
-                System.out.println("ERROR");
-            }
-
-            p.setState(p.getState() - quantiy);
-            productList.add(p);
-        }
-
-        if (productIdWithQuantityMap.isEmpty()) {
-
-            usedProductRepository.saveAll(usedProductList);
-            productRepository.saveAll(productList);
-            //System.out.println("XDDDDDDDDDDDDD");
-
-            returnJson.put("success", true);
-
-            return ResponseEntity.ok(returnJson.toString());
-
-        } else {
-            returnJson.put("success", false);
-            returnJson.put("message", "PRODUKTY_SIE_NIE_ZGADZAJA");
-            return ResponseEntity.ok(returnJson.toString());
-        }
-    }
+//    @RequestMapping(path = "/complete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+//    public ResponseEntity<?> completingOrder(@RequestBody String request) {
+//
+//        JSONObject json = new JSONObject(request);
+//        JSONObject returnJson = new JSONObject();
+//
+//        long orderID = json.getLong("orderID");
+//
+//        Optional<Order> o_optional = orderRepository.findById(orderID);
+//
+//        if (!o_optional.isPresent()) {
+//            returnJson.put("success", false);
+//            returnJson.put("status", "ERROR");
+//            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
+//            return ResponseEntity.ok(returnJson.toString());
+//        }
+//
+//        Order o = o_optional.get();
+//
+//        JSONArray jsonArray = json.getJSONArray("products");
+//
+//        List<UsedProduct> usedProductList = new ArrayList<>();
+//        List<Product> productList = new ArrayList<>();
+//        List<ProductIdWithQuantity> productIdWithQuantityList = new ArrayList<>();
+//
+//        Map<Long, ProductIdWithQuantity> productIdWithQuantityMap = new HashMap<>();
+//
+//        for (UsedProduct usedProduct : o.getUsedProductList()) {
+//            ProductIdWithQuantity productIdWithQuantity = new ProductIdWithQuantity();
+//            productIdWithQuantity.setId(usedProduct.getIdStaticProduct());
+//            productIdWithQuantity.setQuantity(usedProduct.getQuanitity());
+//            productIdWithQuantityList.add(productIdWithQuantity);
+//
+//            productIdWithQuantityMap.put(usedProduct.getIdStaticProduct(), new ProductIdWithQuantity(usedProduct.getIdStaticProduct(), usedProduct.getQuanitity()));
+//
+//            usedProduct.setPicked(true);
+//            usedProductList.add(usedProduct);
+//        }
+//
+//        for (int i = 0; i < jsonArray.length(); ++i) {
+//
+//            JSONObject jo = jsonArray.getJSONObject(i);
+//            Location l = locationRepository.findByBarCodeLocation(jo.getString("locationBarCode"));
+//            Product p = productRepository.findById(jo.getLong("productID")).get();
+//            int quantiy = jo.getInt("quantity");
+//
+//            //System.out.println("XDD " + jsonArray.toString());
+//            //System.out.println("XDDDDDDDDDDDDDDD " + jsonArray.length());
+//
+//            Long staticProductID = p.getStaticProduct().getId();
+//            //System.out.println("XDD " + staticProductID);
+//            productIdWithQuantityMap.get(staticProductID).setQuantity(productIdWithQuantityMap.get(staticProductID).getQuantity() - quantiy);
+//
+//            if (productIdWithQuantityMap.get(staticProductID).getQuantity() == 0) {
+//                productIdWithQuantityMap.remove(staticProductID);
+//            } else if (productIdWithQuantityMap.get(staticProductID).getQuantity() < 0) {
+//                System.out.println("ERROR");
+//            }
+//
+//            p.setState(p.getState() - quantiy);
+//            productList.add(p);
+//        }
+//
+//        if (productIdWithQuantityMap.isEmpty()) {
+//
+//            usedProductRepository.saveAll(usedProductList);
+//            productRepository.saveAll(productList);
+//            //System.out.println("XDDDDDDDDDDDDD");
+//
+//            returnJson.put("success", true);
+//
+//            return ResponseEntity.ok(returnJson.toString());
+//
+//        } else {
+//            returnJson.put("success", false);
+//            returnJson.put("message", "PRODUKTY_SIE_NIE_ZGADZAJA");
+//            return ResponseEntity.ok(returnJson.toString());
+//        }
+//    }
 
     @RequestMapping(path = "/completing", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> completingOrder2(@RequestBody String request) {
 
-        JSONObject json = new JSONObject(request);
-        JSONObject returnJson = new JSONObject();
+        JSONArray jsonArray = new JSONArray(request);
+        JSONObject returnJson2 = new JSONObject();
+        returnJson2.put("messages",new JSONArray());
 
-        long orderID = json.getLong("orderID");
+        List<UsedProductLot> usedProductLotToSave = new ArrayList<>();
+        List<UsedProduct> usedProductToSave = new ArrayList<>();
+        List<Product> productsToSave = new ArrayList<>();
 
-        Optional<Order> o_optional = orderRepository.findById(orderID);
+        for (int i = 0; i < jsonArray.length(); i++) {
 
-        if (!o_optional.isPresent()) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
-            return ResponseEntity.ok(returnJson.toString());
-        }
+            boolean success = false;
 
-        Order o = o_optional.get();
+            JSONObject returnJson = new JSONObject();
+            JSONObject json = jsonArray.getJSONObject(i);
 
-        long prodID = json.getJSONObject("product").getLong("productID");
-        Optional<Product> p_optional = productRepository.findById(prodID);
+            long orderID = json.getLong("orderID");
 
-        if (!p_optional.isPresent()) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Produkt o id " + prodID + " nie istnieje");
-            return ResponseEntity.ok(returnJson.toString());
-        }
+            Optional<Order> o_optional = orderRepository.findById(orderID);
 
-        Product p = p_optional.get();
+            if (!o_optional.isPresent()) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: "+i+",Order o id " + orderID + " nie istnieje");
+                return ResponseEntity.ok(returnJson.toString());
 
-        int quantity = json.getJSONObject("product").getInt("quantity");
+                //returnJson2.getJSONArray("messages").put("Pozycja: "+i+",Order o id " + orderID + " nie istnieje");
+            }
 
-        if (p.getState() < quantity) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Wybranego produktu jest za malo");
-            return ResponseEntity.ok(returnJson.toString());
-        }
+            Order o = o_optional.get();
 
-        for (UsedProduct x : o.getUsedProductList()) {
+            long prodID = json.getJSONObject("product").getLong("productID");
+            Optional<Product> p_optional = productRepository.findById(prodID);
 
-            if (x.getIdStaticProduct() == p.getStaticProduct().getId()) {
+            if (!p_optional.isPresent()) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: "+i+",Produkt o id " + prodID + " nie istnieje");
+                return ResponseEntity.ok(returnJson.toString());
 
-                if (x.isPicked()) {
-                    returnJson.put("success", false);
-                    returnJson.put("status", "ERROR");
-                    returnJson.put("message", "Produkt byl juz skompletowany");
-                    return ResponseEntity.ok(returnJson.toString());
-                }
+                //returnJson2.getJSONArray("messages").put("Pozycja: "+i+",Produkt o id " + prodID + " nie istnieje");
+            }
 
-                if (x.getQuanitity() - x.getPickedQuanitity() >= quantity) {
+            Product p = p_optional.get();
 
-                    x.setPickedQuanitity(x.getPickedQuanitity() + quantity);
-                    if (x.getQuanitity() == x.getPickedQuanitity()) {
-                        x.setPicked(true);
+            int quantity = json.getJSONObject("product").getInt("quantity");
+
+            if (p.getState() < quantity) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: "+i+", Wybranego produktu jest za malo");
+                return ResponseEntity.ok(returnJson.toString());
+
+                //returnJson2.getJSONArray("messages").put("Pozycja: "+i+", Wybranego produktu jest za malo");
+            }
+
+            for (UsedProduct x : o.getUsedProductList()) {
+
+                if (x.getIdStaticProduct() == p.getStaticProduct().getId()) {
+
+                    if (x.isPicked()) {
+                        returnJson.put("success", false);
+                        returnJson.put("status", "ERROR");
+                        returnJson.put("message", "Pozycja: "+i+", Produkt byl juz skompletowany");
+                        return ResponseEntity.ok(returnJson.toString());
+
+                        //returnJson2.getJSONArray("messages").put("Pozycja: "+i+", Produkt byl juz skompletowany");
                     }
-                    p.setState(p.getState() - quantity);
-                    usedProductRepository.save(x);
-                    productRepository.save(p);
-                    returnJson.put("success", true);
-                    returnJson.put("status", "OK");
-                    returnJson.put("message", "Skompletowano produkt, do skompletowania zostalo " + (x.getQuanitity() - x.getPickedQuanitity()) + " sztuk");
-                    return ResponseEntity.ok(returnJson.toString());
-                } else {
-                    returnJson.put("success", false);
-                    returnJson.put("status", "ERROR");
-                    returnJson.put("message", "Zla ilosc produktu");
-                    return ResponseEntity.ok(returnJson.toString());
+
+//                if (x.getPickedQuanitity()+quantity>x.getQuanitity()) {
+//                    returnJson.put("success", false);
+//                    returnJson.put("status", "ERROR");
+//                    returnJson.put("message", "Za duzo produktu, zla ilosc");
+//                    return ResponseEntity.ok(returnJson.toString());
+//                }
+
+                    if (x.getQuanitity() - x.getPickedQuanitity() >= quantity) {
+
+                        x.setPickedQuanitity(x.getPickedQuanitity() + quantity);
+                        if (x.getQuanitity() == x.getPickedQuanitity()) {
+                            x.setPicked(true);
+                        }
+                        p.setState(p.getState() - quantity);
+
+                        boolean upl_exist = false;
+
+                        for (UsedProductLot xUsedProductLot : x.getUsedProductLots()) {
+
+                            //System.out.println(xUsedProductLot.getProductID());
+
+                            if (xUsedProductLot.getProductID() == p.getId()) {
+
+                                //System.out.println("TUTAJ");
+
+                                xUsedProductLot.setProductID(p.getId());
+
+                                int newQuantity = xUsedProductLot.getQuanitity() + quantity;
+
+                                xUsedProductLot.setQuanitity(newQuantity);
+
+                                //usedProductLotRepository.save(xUsedProductLot);
+                                usedProductLotToSave.add(xUsedProductLot);
+
+                                upl_exist = true;
+                                break;
+                            }
+                        }
+
+                        if (!upl_exist) {
+                            UsedProductLot upl = new UsedProductLot();
+                            //upl.setOrderID(o.getId());
+                            upl.setProductID(p.getId());
+                            upl.setQuanitity(quantity);
+
+                            //usedProductLotRepository.save(upl);
+                            usedProductLotToSave.add(upl);
+
+                            x.getUsedProductLots().add(upl);
+                        }
+
+                        //usedProductRepository.save(x);
+                        //productRepository.save(p);
+
+                        usedProductToSave.add(x);
+                        productsToSave.add(p);
+
+                        success=true;
+
+                        returnJson2.getJSONArray("messages").put("Pozycja: "+i+", Skompletowano produkt, do skompletowania zostalo " + (x.getQuanitity() - x.getPickedQuanitity()) + " sztuk");
+
+                        continue;
+
+                        //returnJson.put("success", true);
+                        //returnJson.put("status", "OK");
+                        //returnJson.put("message", "Skompletowano produkt, do skompletowania zostalo " + (x.getQuanitity() - x.getPickedQuanitity()) + " sztuk");
+                        //return ResponseEntity.ok(returnJson.toString());
+                    } else {
+                        returnJson.put("success", false);
+                        returnJson.put("status", "ERROR");
+                        returnJson.put("message", "Pozycja: "+i+", Zla ilosc produktu");
+                        return ResponseEntity.ok(returnJson.toString());
+
+                        //returnJson2.getJSONArray("messages").put("Pozycja: "+i+", Zla ilosc produktu");
+                    }
                 }
+            }
+
+            if(!success) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: " + i + ", Zly produkt");
+                return ResponseEntity.ok(returnJson.toString());
+
+                //returnJson2.getJSONArray("messages").put("Pozycja: "+i+", Zly produkt");
             }
         }
 
-        returnJson.put("success", false);
-        returnJson.put("status", "ERROR");
-        returnJson.put("message", "Zly produkt");
-        return ResponseEntity.ok(returnJson.toString());
+        usedProductLotRepository.saveAll(usedProductLotToSave);
+        usedProductRepository.saveAll(usedProductToSave);
+        productRepository.saveAll(productsToSave);
+
+        returnJson2.put("success", true);
+        returnJson2.put("status", "OK");
+        returnJson2.put("message", "Produkty skompletowane");
+        return ResponseEntity.ok(returnJson2.toString());
     }
 
     @RequestMapping(path = "/returning", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> returningOrder2(@RequestBody String request) {
 
-        JSONObject json = new JSONObject(request);
-        JSONObject returnJson = new JSONObject();
+        JSONArray jsonArray = new JSONArray(request);
+        JSONObject returnJson2 = new JSONObject();
+        returnJson2.put("messages",new JSONArray());
 
-        long orderID = json.getLong("orderID");
+        List<UsedProductLot> usedProductLotToSave = new ArrayList<>();
+        List<UsedProduct> usedProductToSave = new ArrayList<>();
+        List<Product> productsToSave = new ArrayList<>();
 
-        Optional<Order> o_optional = orderRepository.findById(orderID);
+        int successCount = 0;
 
-        if (!o_optional.isPresent()) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Order o id " + orderID + " nie istnieje");
-            return ResponseEntity.ok(returnJson.toString());
-        }
+        for (int i = 0; i < jsonArray.length(); i++) {
 
-        Order o = o_optional.get();
+            boolean success = false;
+            JSONObject returnJson = new JSONObject();
+            JSONObject json = jsonArray.getJSONObject(i);
 
-        long prodID = json.getLong("productID");
-        Optional<Product> p_optional = productRepository.findById(prodID);
+            long orderID = json.getLong("orderID");
 
-        if (!p_optional.isPresent()) {
-            returnJson.put("success", false);
-            returnJson.put("status", "ERROR");
-            returnJson.put("message", "Produkt o id " + prodID + " nie istnieje");
-            return ResponseEntity.ok(returnJson.toString());
-        }
+            Optional<Order> o_optional = orderRepository.findById(orderID);
 
-        int quantity = json.getInt("quantity");
-
-        Product p = p_optional.get();
-
-        for (UsedProduct up : o.getUsedProductList()) {
-            if(up.getIdStaticProduct()==p.getStaticProduct().getId()){
-                int newQuantity = up.getPickedQuanitity()-quantity;
-
-                if(newQuantity<0){
-                    returnJson.put("success", false);
-                    returnJson.put("status", "ERROR");
-                    returnJson.put("message", "Zla ilosc");
-                    return ResponseEntity.ok(returnJson.toString());
-                }
-
-                up.setPickedQuanitity(newQuantity);
-                up.setPicked(false);
-
-                p.setState(p.getState()+quantity);
-
-                usedProductRepository.save(up);
-                productRepository.save(p);
-
-                returnJson.put("success", true);
-                returnJson.put("status", "OK");
-                returnJson.put("message", "Odlozono produkt");
+            if (!o_optional.isPresent()) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: "+i+", Order o id " + orderID + " nie istnieje");
                 return ResponseEntity.ok(returnJson.toString());
             }
+
+            Order o = o_optional.get();
+
+            long prodID = json.getJSONObject("product").getLong("productID");
+            Optional<Product> p_optional = productRepository.findById(prodID);
+
+            if (!p_optional.isPresent()) {
+                returnJson.put("success", false);
+                returnJson.put("status", "ERROR");
+                returnJson.put("message", "Pozycja: "+i+", Produkt o id " + prodID + " nie istnieje");
+                return ResponseEntity.ok(returnJson.toString());
+            }
+
+            //int quantity = json.getJSONObject("product").getInt("quantity");
+
+            Product p = p_optional.get();
+
+            for (UsedProduct up : o.getUsedProductList()) {
+                if (up.getIdStaticProduct() == p.getStaticProduct().getId()) {
+
+                    Iterator<UsedProductLot> iter = up.getUsedProductLots().iterator();
+
+                    while (iter.hasNext()) {
+                        UsedProductLot xUsedProductLot = iter.next();
+
+                        if (xUsedProductLot.getProductID() == p.getId()) {
+
+                            int newQuantity = up.getPickedQuanitity() - xUsedProductLot.getQuanitity();
+
+                            if (newQuantity < 0) {
+                                returnJson.put("success", false);
+                                returnJson.put("status", "ERROR");
+                                returnJson.put("message", "Pozycja: "+i+", Zla ilosc");
+                                return ResponseEntity.ok(returnJson.toString());
+                            }
+
+                            up.setPickedQuanitity(newQuantity);
+                            up.setPicked(false);
+
+                            p.setState(p.getState() + xUsedProductLot.getQuanitity());
+
+                            //up.getUsedProductLots().remove(xUsedProductLot);
+
+                            //usedProductLotRepository.delete(xUsedProductLot);
+
+                            usedProductLotToSave.add(xUsedProductLot);
+
+                            //usedProductRepository.save(up);
+                            //productRepository.save(p);
+
+                            usedProductToSave.add(up);
+                            productsToSave.add(p);
+
+                            returnJson2.getJSONArray("messages").put("Odlozono produkt");
+
+                            successCount++;
+
+                            continue;
+
+                            //returnJson.put("success", true);
+                            //returnJson.put("status", "OK");
+                            //returnJson.put("message", "Odlozono produkt");
+                            //return ResponseEntity.ok(returnJson.toString());
+                        }
+                    }
+
+                    up.getUsedProductLots().removeAll(usedProductLotToSave);
+
+//                    for (UsedProductLot xUsedProductLot : up.getUsedProductLots()) {
+//                        if (xUsedProductLot.getProductID() == p.getId()) {
+//
+//                            int newQuantity = up.getPickedQuanitity() - xUsedProductLot.getQuanitity();
+//
+//                            if (newQuantity < 0) {
+//                                returnJson.put("success", false);
+//                                returnJson.put("status", "ERROR");
+//                                returnJson.put("message", "Pozycja: "+i+", Zla ilosc");
+//                                return ResponseEntity.ok(returnJson.toString());
+//                            }
+//
+//                            up.setPickedQuanitity(newQuantity);
+//                            up.setPicked(false);
+//
+//                            p.setState(p.getState() + xUsedProductLot.getQuanitity());
+//
+//                            up.getUsedProductLots().remove(xUsedProductLot);
+//
+//                            //usedProductLotRepository.delete(xUsedProductLot);
+//
+//                            usedProductLotToSave.add(xUsedProductLot);
+//
+//                            //usedProductRepository.save(up);
+//                            //productRepository.save(p);
+//
+//                            usedProductToSave.add(up);
+//                            productsToSave.add(p);
+//
+//                            success=true;
+//
+//                            returnJson2.getJSONArray("messages").put("Odlozono produkt");
+//
+//                            continue;
+//
+//                            //returnJson.put("success", true);
+//                            //returnJson.put("status", "OK");
+//                            //returnJson.put("message", "Odlozono produkt");
+//                            //return ResponseEntity.ok(returnJson.toString());
+//                        }
+//                    }
+                }
+            }
+        }
+        System.out.println(successCount+" | "+jsonArray.length());
+        if(successCount==jsonArray.length()) {
+            usedProductLotRepository.deleteAll(usedProductLotToSave);
+            usedProductRepository.saveAll(usedProductToSave);
+            productRepository.saveAll(productsToSave);
+
+            returnJson2.put("success", true);
+            returnJson2.put("status", "OK");
+            return ResponseEntity.ok(returnJson2.toString());
         }
 
-        returnJson.put("success", false);
-        returnJson.put("status", "ERROR");
-        returnJson.put("message", "Podales zly produkt");
-        return ResponseEntity.ok(returnJson.toString());
+        returnJson2.put("success", false);
+        returnJson2.put("status", "ERROR");
+        return ResponseEntity.ok(returnJson2.toString());
     }
 
     @RequestMapping(path = "/end", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -685,6 +904,8 @@ public class OrderController {
 
         Order o = o_optional.get();
 
+        Set<Long> productIdList = new HashSet<>();
+
         for (UsedProduct usedProduct : o.getUsedProductList()) {
             if (!usedProduct.isPicked()) {
                 returnJson.put("success", false);
@@ -692,9 +913,22 @@ public class OrderController {
                 returnJson.put("message", "Order nie jest skompletowany");
                 return ResponseEntity.ok(returnJson.toString());
             }
+
+            for (UsedProductLot upl : usedProduct.getUsedProductLots()) {
+                productIdList.add(upl.getProductID());
+            }
         }
 
-        //for(o.)
+        for (Long pid : productIdList) {
+            Product p = productRepository.findById(pid).get();
+
+            if(p.getState()==0){
+                StaticProduct sp =p.getStaticProduct();
+                sp.getProducts().remove(p);
+                productRepository.delete(p);
+                staticProductRepository.save(sp);
+            }
+        }
 
         o.setEndDate(new Date());
 
