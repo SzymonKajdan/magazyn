@@ -14,6 +14,10 @@ public class UsedProductLot {
     @SequenceGenerator(name = "usedproductlot_seq", sequenceName = "usedproductlot_seq", allocationSize = 1)
     private Long id;
 
+//    @Column(name = "orderID")
+//    @NotNull
+//    private Long orderID;
+
     @Column(name = "productID")
     @NotNull
     private Long productID;
@@ -41,4 +45,12 @@ public class UsedProductLot {
     public Long getId() {
         return id;
     }
+
+//    public Long getOrderID() {
+//        return orderID;
+//    }
+//
+//    public void setOrderID(Long orderID) {
+//        this.orderID = orderID;
+//    }
 }
