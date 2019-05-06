@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -37,7 +39,6 @@ public class OrderController {
     StaticProductRepository staticProductRepository;
     @Autowired
     UsedProductLotRepository usedProductLotRepository;
-
 
     @RequestMapping(path = "/checkUserActiveOrder", method = RequestMethod.GET)
     public ResponseEntity<?> checkUserActiveOrder() {
@@ -948,4 +949,35 @@ public class OrderController {
         returnJson.put("message", "Zamowienie zaakceptowane");
         return ResponseEntity.ok(returnJson.toString());
     }
+
+    @RequestMapping(path = "/orderToPdf", method = RequestMethod.POST, produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> orderPDF(@RequestBody String request) throws IOException {
+
+        JSONObject json = new JSONObject(request);
+        JSONObject returnJson = new JSONObject();
+
+        long orderID = json.getLong("id");
+
+        Optional<Order> order_oprional = orderRepository.findById(orderID);
+
+//        if(order_oprional.isPresent()){
+//
+//        }
+
+        Order order = order_oprional.get();
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userRepository.findByUsername(username);
+
+        return ResponseEntity.ok((new Pdfcreator(order).createPdf(user)));
+    }
+
+//    private void OrderTopdf(Order order) throws IOException {
+//
+//        final String DEST = "C:/Users/Zielu/Desktop/java_faktura_pdf/faktura.pdf";
+//        File file = new File(DEST);
+//        file.getParentFile().mkdirs();
+//        new Pdfcreator(order,DEST).createPdf(DEST);
+//    }
 }
