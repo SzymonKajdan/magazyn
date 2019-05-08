@@ -3,6 +3,14 @@ package com.example.rest;
 import com.example.model.*;
 import com.example.repository.*;
 import com.example.security.model.User;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.border.Border;
+import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.property.TextAlignment;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
@@ -14,9 +22,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @CrossOrigin(origins = "*", allowCredentials = "true", maxAge = 3600)
@@ -228,6 +240,29 @@ public class OrderController {
         return createJsonArrayOfOrders(ordersNotEnded);
     }
 
+    @RequestMapping(path = "/findAllByPrincipal", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> findAllByPrincipal(@RequestBody String request) {
+
+        JSONObject request_json = new JSONObject(request);
+        long pId = request_json.getLong("id");
+
+        Optional<Principal> p_optional = principalRepository.findById(pId);
+
+        if(!p_optional.isPresent()){
+            JSONObject returnJson = new JSONObject();
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Brak takiego principala");
+            returnJson.put("success", false);
+
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
+        Principal p = p_optional.get();
+        List<Order> orders = orderRepository.findAllByPrincipal(p);
+        //return ResponseEntity.ok(orders);
+        return createJsonArrayOfOrders(orders);
+    }
+
     @RequestMapping(path = "/getInfoAboutOrder", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getInfoAboutOrder(@RequestBody String oderId) {
         String username;
@@ -386,8 +421,6 @@ public class OrderController {
         return sum;
     }
 
-
-
     @RequestMapping(path = "/make", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> makeOrder(@RequestBody String request) {
 
@@ -406,6 +439,15 @@ public class OrderController {
 
             Long id = productsJsonArray.getJSONObject(i).getLong("id");
             int quantity = productsJsonArray.getJSONObject(i).getInt("quantity");
+
+            if(quantity<=0){
+                JSONObject jo = new JSONObject();
+
+                jo.put("success", false);
+                jo.put("message", "Zla ilosc produktu");
+
+                return ResponseEntity.ok(jo.toString());
+            }
 
             UsedProduct usedProduct = new UsedProduct();
             StaticProduct staticProduct = staticProductRepository.findById(id).get();
@@ -950,6 +992,256 @@ public class OrderController {
         return ResponseEntity.ok(returnJson.toString());
     }
 
+    Order general_info;
+    double sum =0.0;
+
+    public byte[] createPdf(Order order, User user, java.util.List<Long> usedProductList) throws IOException {
+
+        this.general_info = order;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        //inicjalizacja PDF WRITER
+
+        PdfWriter writer = new PdfWriter(buffer);
+
+        //inicjalizacja PDF Document
+        PdfDocument pdf = new PdfDocument(writer);
+
+        //inicjalizacja Document
+        Document document = new Document(pdf);
+
+        //dodanie tekstu
+        // addLogo(document);
+        //Lokalizacja
+        //Pobranie daty poczatkowej i koncowek
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        addParaToRight("Warszawa",
+                dateFormat.format(general_info.getDate()),
+                dateFormat.format(general_info.getEndDate()),
+                document);
+
+        addPara(" ", document);
+        createTable_1(document, user);
+        addPara(" ", document);
+        createTable_2(document, usedProductList);
+        addPara(" ", document);
+        createTableSum(document);
+        addPara(" ", document);
+        addPara(" ", document);
+        addParaFooter(document);
+
+        //zamkniecie pliku
+        document.close();
+        pdf.close();
+        buffer.close();
+
+        return buffer.toByteArray();
+    }
+
+    public void addLogo(Document doc) throws IOException {
+
+        // Creating an ImageData object
+        String imFile = "C:/Users/Zielu/Desktop/java_faktura_pdf/logo.png";
+        ImageData data = ImageDataFactory.create(imFile);
+        // Creating an Image object
+        Image image = new Image(data);
+        // Adding image to the document
+        doc.add(image);
+        System.out.println("Image added");
+    }
+
+    public void addParaToRight(String place, String dataW, String dataS, Document doc) throws IOException {
+        // Creating a table
+        float[] pointColumnWidths = {1000F};
+        Table table = new Table(pointColumnWidths);
+
+        // Adding cells to the table
+        table.addCell(getCell("Faktura Var nr./Var FV/123/2019/02", TextAlignment.RIGHT));
+        table.addCell(getCell("Orginał/Orginal", TextAlignment.RIGHT));
+        table.addCell(getCell("Miejscowosc/Place: " + place, TextAlignment.RIGHT));
+        table.addCell(getCell("Data wystawienia/Date of issue: " + dataW, TextAlignment.RIGHT));
+        table.addCell(getCell("Data sprzedaży/Date of sell : " + dataS, TextAlignment.RIGHT));
+        doc.add(table);
+    }
+
+    public Cell getCell(String text, TextAlignment alignment) {
+        Cell cell = new Cell().add(new Paragraph(text));
+        cell.setPadding(0);
+        cell.setTextAlignment(alignment);
+        cell.setBorder(Border.NO_BORDER);
+        return cell;
+    }
+
+    public void createTable_1(Document doc, User user) throws IOException {
+
+        // Creating a table
+        float[] pointColumnWidths = {500F, 500F};
+        Table table = new Table(pointColumnWidths);
+
+        //Lista przykladowa  nabywcy
+        com.itextpdf.layout.element.List list1 = new com.itextpdf.layout.element.List();
+        list1.setListSymbol("");
+        list1.add(new ListItem("Address : " + general_info.getPrincipal().getAddress()));
+        list1.add(new ListItem("Company : " + general_info.getPrincipal().getCompanyName()));
+        list1.add(new ListItem("NIP : " + general_info.getPrincipal().getNip()));
+        list1.add(new ListItem("Tel : " + general_info.getPrincipal().getPhoneNo()));
+
+        //Lista przykladowa pracownika
+        com.itextpdf.layout.element.List list2 = new com.itextpdf.layout.element.List();
+        list2.setListSymbol("");
+        list2.add(new ListItem("Pracownik : " + user.getUsername()));
+        list2.add(new ListItem("Email : " + user.getEmail()));
+        list2.add(new ListItem("Imie : " + user.getFirstname()));
+        list2.add(new ListItem("Nazwisko : " + user.getLastname()));
+
+        // Adding cells to the table
+        table.addCell(new Cell().add("Nabywca (Purchaser)"));
+        table.addCell(new Cell().add("Sprzedawca (Vendor)"));
+        table.addCell(new Cell().add(list1));
+        table.addCell(new Cell().add(list2));
+
+
+        // Adding Table to document
+        doc.add(table);
+    }
+
+    public void createTable_2(Document doc, java.util.List<Long> usedProductIds) throws IOException {
+
+        // Creating a table
+        float[] pointColumnWidths = {10F, 90F, 25F, 10F, 30F, 70F, 40F, 70F, 75F};
+        Table table = new Table(pointColumnWidths);
+
+        // Adding cells to the table
+        table.addCell(new Cell().add("L.P"));
+        table.addCell(new Cell().add("Nazwa towaru"));
+        table.addCell(new Cell().add("Ilosc"));
+        table.addCell(new Cell().add("j.m"));
+        table.addCell(new Cell().add("Cena netto"));
+        table.addCell(new Cell().add("Wartość netto"));
+        table.addCell(new Cell().add("Stawka VAT"));
+        table.addCell(new Cell().add("Kwota VAT"));
+        table.addCell(new Cell().add("Wartość brutto"));
+        ////////////////////////////////////
+//        for (int i = 0; i < general_info.getUsedProductList().size(); i++) {
+//            String cout = Integer.toString(i + 1);
+//            table.addCell(new Cell().add(cout));
+//            table.addCell(new Cell().add("Szafa"));
+//            table.addCell(new Cell().add("2"));
+//            table.addCell(new Cell().add("szt."));
+//            table.addCell(new Cell().add("437,00"));
+//            table.addCell(new Cell().add("2400,00"));
+//            table.addCell(new Cell().add("23%"));
+//            table.addCell(new Cell().add("23,00"));
+//            table.addCell(new Cell().add("4400,00"));
+//        }
+        //java.util.List<UsedProduct> productList = general_info.getUsedProductList();
+
+        int i = 0;
+        for (Long l : usedProductIds) {
+
+            System.out.println("TUTAJ -> "+l);
+            UsedProduct c = usedProductRepository.findById(l).get();
+            System.out.println("TUTAJ -> "+c.getIdStaticProduct());
+
+            StaticProduct staticProduct = staticProductRepository.getOne(c.getIdStaticProduct());
+            // System.out.println(staticProduct.getBarCode());
+
+            StringBuilder sbuf = new StringBuilder();
+            Formatter f = new Formatter(sbuf);
+            double price = staticProduct.getPrice();
+            double price_1 = (double)(c.getQuanitity()) * staticProduct.getPrice();
+            double price_2 = (double)(c.getQuanitity()) * staticProduct.getPrice() * 0.23;
+            double price_3 = (double)(c.getQuanitity()) * staticProduct.getPrice() + ( (double)(c.getQuanitity()) * staticProduct.getPrice() * 0.23);
+            String cout = Integer.toString(i + 1);
+            table.addCell(new Cell().add(cout));
+            table.addCell(new Cell().add(staticProduct.getName()));
+            table.addCell(new Cell().add(Integer.toString(c.getQuanitity())));
+            table.addCell(new Cell().add("szt."));
+
+            f.format("%.2f",price);
+            table.addCell(new Cell().add(sbuf.toString()));
+
+            sbuf.setLength(0);
+            f.format("%.2f",price_1);
+            table.addCell(new Cell().add(sbuf.toString()));
+            sbuf.setLength(0);
+
+            f.format("%.2f",price_2);
+            table.addCell(new Cell().add("23%"));
+            table.addCell(new Cell().add(sbuf.toString()));
+            sbuf.setLength(0);
+
+            f.format("%.2f",price_3);
+            table.addCell(new Cell().add(sbuf.toString()));
+            sbuf.setLength(0);
+
+            sum += ( (double)(c.getQuanitity()) * staticProduct.getPrice() + ( (double)(c.getQuanitity()) * staticProduct.getPrice() * 0.23));
+            i++;
+        }
+
+        doc.add(table);
+    }
+
+    public void createTableSum(Document doc) throws IOException {
+
+        // Creating a table
+        float[] pointColumnWidths = {200F, 500F};
+        Table table = new Table(pointColumnWidths);
+
+        //Lista przykladowa sprzedawcy
+        com.itextpdf.layout.element.List list1 = new com.itextpdf.layout.element.List();
+        list1.setListSymbol("");
+        list1.add(new ListItem("Sposob zaplaty : "));
+        list1.add(new ListItem("Termin zaplaty : "));
+        list1.add(new ListItem("Numer rachunku : "));
+
+
+        //Lista przykladowa nabywcy
+        com.itextpdf.layout.element.List list2 = new com.itextpdf.layout.element.List();
+        list2.setListSymbol("");
+        list2.add(new ListItem("Brak"));
+        // list2.add(new ListItem("2019-02-19"));
+        // list2.add(new ListItem("Brak"));
+        StringBuilder sbuf = new StringBuilder();
+        Formatter f = new Formatter(sbuf);
+        f.format("%.2f",sum);
+        // Adding cells to the table
+        table.addCell(getCell("Razem do zaplaty : ", TextAlignment.RIGHT));
+        table.addCell(getCell(sbuf.toString(), TextAlignment.LEFT));
+        table.addCell(getCellList(list1, TextAlignment.RIGHT));
+        table.addCell(getCellList(list2, TextAlignment.LEFT));
+
+
+        // Adding Table to document
+        doc.add(table);
+    }
+
+    public Cell getCellList(com.itextpdf.layout.element.List list, TextAlignment alignment) {
+        Cell cell = new Cell().add(list);
+        cell.setPadding(0);
+        cell.setTextAlignment(alignment);
+        cell.setBorder(Border.NO_BORDER);
+        return cell;
+    }
+
+    public void addParaFooter(Document doc) throws IOException {
+        // Creating a table
+        float[] pointColumnWidths = {500F, 500F};
+        Table table = new Table(pointColumnWidths);
+
+        // Adding cells to the table
+        table.addCell(getCell("....................................", TextAlignment.CENTER));
+        table.addCell(getCell("....................................", TextAlignment.CENTER));
+        table.addCell(getCell("Wystawil", TextAlignment.CENTER));
+        table.addCell(getCell("Odebral", TextAlignment.CENTER));
+        doc.add(table);
+    }
+
+    public void addPara(String string, Document doc) throws IOException {
+        //dodaje paragraf
+        doc.add(new Paragraph(string));
+    }
+
     @RequestMapping(path = "/orderToPdf", method = RequestMethod.POST, produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<?> orderPDF(@RequestBody String request) throws IOException {
 
@@ -970,14 +1262,12 @@ public class OrderController {
         String username = userDetails.getUsername();
         User user = userRepository.findByUsername(username);
 
-        return ResponseEntity.ok((new Pdfcreator(order).createPdf(user)));
-    }
+        List<Long> usedProductIds = new ArrayList<>();
 
-//    private void OrderTopdf(Order order) throws IOException {
-//
-//        final String DEST = "C:/Users/Zielu/Desktop/java_faktura_pdf/faktura.pdf";
-//        File file = new File(DEST);
-//        file.getParentFile().mkdirs();
-//        new Pdfcreator(order,DEST).createPdf(DEST);
-//    }
+        for (UsedProduct usedProduct : order.getUsedProductList()) {
+            usedProductIds.add(usedProduct.getId());
+        }
+
+        return ResponseEntity.ok(createPdf(order,user,usedProductIds));
+    }
 }

@@ -2,6 +2,7 @@ package com.example.repository;
 
 import com.example.model.Location;
 import com.example.model.Order;
+import com.example.model.Principal;
 import com.example.security.model.User;
 import org.aspectj.weaver.ast.Or;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Order findByEndDateIsNullAndUser(User u);
 
     List<Order>findAllByEndDateBetweenAndUser(Date start,Date end,User u );
+
+    List<Order> findAllByPrincipal(Principal p);
 }
