@@ -1099,7 +1099,7 @@ public class OrderController {
         table.addCell(new Cell().add("Sprzedawca (Vendor)"));
         table.addCell(new Cell().add(list1));
         table.addCell(new Cell().add(list2));
-
+// kk
 
         // Adding Table to document
         doc.add(table);
