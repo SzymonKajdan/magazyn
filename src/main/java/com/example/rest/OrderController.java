@@ -1259,10 +1259,6 @@ public class OrderController {
 
         Optional<Order> order_oprional = orderRepository.findById(orderID);
 
-//        if(order_oprional.isPresent()){
-//
-//        }
-
         Order order = order_oprional.get();
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -1287,10 +1283,6 @@ public class OrderController {
         long orderID = json.getLong("id");
 
         Optional<Order> order_oprional = orderRepository.findById(orderID);
-
-//        if(order_oprional.isPresent()){
-//
-//        }
 
         Order order = order_oprional.get();
 
