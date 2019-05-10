@@ -956,6 +956,13 @@ public class OrderController {
 
         Order o = o_optional.get();
 
+        if(o.getEndDate()!=null){
+            returnJson.put("success", false);
+            returnJson.put("status", "ERROR");
+            returnJson.put("message", "Order jest juz zakonczony");
+            return ResponseEntity.ok(returnJson.toString());
+        }
+
         Set<Long> productIdList = new HashSet<>();
 
         for (UsedProduct usedProduct : o.getUsedProductList()) {
@@ -1269,5 +1276,39 @@ public class OrderController {
         }
 
         return ResponseEntity.ok(createPdf(order,user,usedProductIds));
+    }
+
+    @RequestMapping(path = "/orderToPdfStr", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> orderPdfStr(@RequestBody String request) throws IOException {
+
+        JSONObject json = new JSONObject(request);
+        JSONObject returnJson = new JSONObject();
+
+        long orderID = json.getLong("id");
+
+        Optional<Order> order_oprional = orderRepository.findById(orderID);
+
+//        if(order_oprional.isPresent()){
+//
+//        }
+
+        Order order = order_oprional.get();
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        User user = userRepository.findByUsername(username);
+
+        List<Long> usedProductIds = new ArrayList<>();
+
+        for (UsedProduct usedProduct : order.getUsedProductList()) {
+            usedProductIds.add(usedProduct.getId());
+        }
+
+        String base64format = Base64.getEncoder().encodeToString(createPdf(order,user,usedProductIds));
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("pdf",base64format);
+
+        return ResponseEntity.ok(jsonObject.toString());
     }
 }
