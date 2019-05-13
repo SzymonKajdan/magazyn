@@ -128,6 +128,9 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 staticLocation.setBarCodeLocation(strings.get(2));
                 staticLocationRepository.save(staticLocation);
 
+
+
+                //round prcie
                 Random r = new Random();
                 double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
                 randomValue = DoubleRounder.round(randomValue, 2);
