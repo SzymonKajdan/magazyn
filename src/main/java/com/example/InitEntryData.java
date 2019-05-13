@@ -129,17 +129,11 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 staticLocationRepository.save(staticLocation);
 
 
-
                 //round prcie
                 Random r = new Random();
                 double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
-               //git  randomValue = DoubleRounder.round(randomValue, 2);
+                randomValue = DoubleRounder.round(randomValue, 2);
                 System.out.println(randomValue);
-
-
-
-
-
 
 
                 StaticProduct staticProduct = new StaticProduct();
