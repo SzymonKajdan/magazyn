@@ -52,7 +52,7 @@ public class LocationController {
         Location locationInDb = locationRepository.findByBarCodeLocation(barCodeLocation);
         if (locationInDb != null) {
             JSONObject jsonObjectToRespone = new JSONObject();
-            jsonObjectToRespone.put("Status","Exist");
+            jsonObjectToRespone.put("status","Exist");
 
             return ResponseEntity.ok(jsonObjectToRespone.toString());
 
@@ -60,7 +60,7 @@ public class LocationController {
         } else {
             JSONObject jsonObjectToRespone = new JSONObject();
 
-            jsonObjectToRespone.put("Status","NotExist");
+            jsonObjectToRespone.put("status","NotExist");
             return ResponseEntity.ok(jsonObjectToRespone.toString());
 
         }
