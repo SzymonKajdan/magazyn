@@ -133,7 +133,7 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
                 //round prcie
                 Random r = new Random();
                 double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
-                randomValue = DoubleRounder.round(randomValue, 2);
+               //git  randomValue = DoubleRounder.round(randomValue, 2);
                 System.out.println(randomValue);
 
 
