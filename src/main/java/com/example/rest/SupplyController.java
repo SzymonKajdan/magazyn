@@ -7,6 +7,7 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,8 @@ public class SupplyController {
     StaticLocationRepository staticLocationsRepository;
     @Autowired
     UsedProductRepository usedProductRepository;
+    @Autowired
+    UsedProductLotRepository usedProductLotRepository;
 
 
     @RequestMapping(path = "/Supply/getInfoAboutSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -53,6 +56,7 @@ public class SupplyController {
         }
 
     }
+
     @RequestMapping(path = "/Supply/getSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<?> getSupply(@RequestBody String supplyRequest) {
         JSONObject jsonObjectBarCode = new JSONObject(supplyRequest);
@@ -105,6 +109,51 @@ public class SupplyController {
             return ResponseEntity.ok(new JSONObject().put("Status", "OK").toString());
         } else {
             return ResponseEntity.ok(new JSONObject().put("Status", "ERROR").toString());
+        }
+    }
+
+    @RequestMapping(path = "/Supply/deleteSupply", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?> deleteSupply(@RequestBody String supplyString) {
+        JSONObject supplyJSON = new JSONObject(supplyString);
+        String barCode = supplyJSON.getString("barCodeOfSupply");
+
+        Supply supply = supplyRepository.findByBarCodeOfSupply(barCode);
+        if (supply == null) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "Error");
+            return ResponseEntity.ok(response.toString());
+        }
+
+        if (supply.isStatus()) {
+            JSONObject response = new JSONObject();
+            response.put("Status", "Error");
+            return ResponseEntity.ok(response.toString());
+        } else {
+
+
+            List<Palette>paletteListToDelete=supply.getPalettes();
+            supply.setPalettes(null);
+            deletePalettes(paletteListToDelete);
+            supply.setPalettes(new ArrayList<>());
+            supplyRepository.delete(supply);
+            JSONObject response = new JSONObject();
+            response.put("Status", "Deleted");
+            return ResponseEntity.ok(response.toString());
+        }
+
+    }
+
+    private void deletePalettes(List<Palette> palettes) {
+        for (Palette palette : palettes) {
+            List<UsedProduct> usedProductListTodelete=palette.getUsedProducts();
+            palette.setUsedProducts(null);
+            for(UsedProduct usedProduct:usedProductListTodelete){
+                usedProductLotRepository.deleteAll(usedProduct.getUsedProductLots());
+                System.out.println(usedProduct.getId());
+               usedProductRepository.delete(usedProduct);
+            }
+
+           paletteRepository.delete(palette);
         }
     }
 
@@ -169,10 +218,10 @@ public class SupplyController {
     }
 
     private void checkBarCodeOfProducts(List<Palette> palettes) {
-        for(Palette p:palettes){
-            for(UsedProduct product:p.getUsedProducts()){
+        for (Palette p : palettes) {
+            for (UsedProduct product : p.getUsedProducts()) {
 
-                StaticProduct staticProduct=staticProductRepository.getOne(product.getIdStaticProduct());
+                StaticProduct staticProduct = staticProductRepository.getOne(product.getIdStaticProduct());
                 product.setBarCodeProduct(staticProduct.getBarCode());
 
             }
@@ -358,7 +407,7 @@ public class SupplyController {
 
     private JSONObject createSupplyJSON(Supply supply) {
         JSONArray jsonArray = new JSONArray();
-        JSONObject supplyJson=supplyToJSON(supply);
+        JSONObject supplyJson = supplyToJSON(supply);
 
         supply.getPalettes().forEach((x) -> {
             jsonArray.put(createListOfPalletesToJsonWithInfoAboutProduct(x));
@@ -366,10 +415,10 @@ public class SupplyController {
         });
 
         supplyJson.put("palletes", jsonArray);
-        return  supplyJson;
+        return supplyJson;
     }
 
-    private  JSONObject supplyToJSON(Supply supply){
+    private JSONObject supplyToJSON(Supply supply) {
         JSONObject jsonObject = new JSONObject();
         int amountOfPalletes = supply.getPalettes().size();
 
@@ -378,35 +427,36 @@ public class SupplyController {
         jsonObject.put("typeOfSupply", supply.getTypeOfSupply());
         jsonObject.put("arriveDate", supply.getArriveDate());
         jsonObject.put("aomuntOfPalletes", amountOfPalletes);
-        return  jsonObject;
+        return jsonObject;
     }
+
     private JSONObject createListOfPalletesToJsonWithInfoAboutProduct(Palette palette) {
         JSONObject jsonObject = paletteToJSON(palette);
-        jsonObject.put("product",createInfoAboutPallete(palette));
+        jsonObject.put("product", createInfoAboutPallete(palette));
 
         return jsonObject;
 
     }
 
     private JSONArray createInfoAboutPallete(Palette palette) {
-        JSONArray jsonArray=new JSONArray();
+        JSONArray jsonArray = new JSONArray();
 
-        System.out.println("rozmair "+palette.getUsedProducts().size());
-        for(UsedProduct p:palette.getUsedProducts()){
-            JSONObject productInfo=new JSONObject();
-            StaticProduct product=staticProductRepository.getOne(p.getIdStaticProduct());
+        System.out.println("rozmair " + palette.getUsedProducts().size());
+        for (UsedProduct p : palette.getUsedProducts()) {
+            JSONObject productInfo = new JSONObject();
+            StaticProduct product = staticProductRepository.getOne(p.getIdStaticProduct());
 
-            productInfo.put("name",product.getName());
-            productInfo.put("quanitity",p.getQuanitity());
+            productInfo.put("name", product.getName());
+            productInfo.put("quanitity", p.getQuanitity());
             jsonArray.put(productInfo);
         }
         System.out.println(jsonArray.toString());
-        return  jsonArray;
+        return jsonArray;
     }
 
     private JSONObject createSupplyResponse(Supply supply) {
         JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject =supplyToJSON(supply);
+        JSONObject jsonObject = supplyToJSON(supply);
 
 
         supply.getPalettes().forEach((x) -> {
@@ -419,10 +469,11 @@ public class SupplyController {
     }
 
     private JSONObject createListOfPalletesToJson(Palette palette) {
-        JSONObject palleteJson=paletteToJSON(palette);
+        JSONObject palleteJson = paletteToJSON(palette);
         return palleteJson;
     }
-    private  JSONObject paletteToJSON(Palette palette){
+
+    private JSONObject paletteToJSON(Palette palette) {
         JSONObject jsonObject = new JSONObject();
         int amountOfProducts = palette.getUsedProducts().stream().mapToInt(x -> x.getQuanitity()).sum();
 

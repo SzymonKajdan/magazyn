@@ -5,6 +5,7 @@ import com.example.repository.*;
 import com.example.security.model.Authority;
 import com.example.security.model.AuthorityName;
 import com.example.security.model.User;
+import org.decimal4j.util.DoubleRounder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -127,6 +130,14 @@ public class InitEntryData implements ApplicationListener<ContextRefreshedEvent>
 
                 Random r = new Random();
                 double randomValue = 0.50 + (20.0 - 0.50) * r.nextDouble();
+                randomValue = DoubleRounder.round(randomValue, 2);
+                System.out.println(randomValue);
+
+
+
+
+
+
 
                 StaticProduct staticProduct = new StaticProduct();
                 staticProduct.setName(strings.get(1));

@@ -43,6 +43,28 @@ public class LocationController {
             return ResponseEntity.ok(null);
         }
     }
+    @RequestMapping(path = "/locationCheck",method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<?>locationCheck(@RequestBody String location){
+        JSONObject jsonObjectLocation = new JSONObject(location);
+        Location locationFromRequest = locationParserOneLocation(jsonObjectLocation.toString());
+
+        String barCodeLocation = locationFromRequest.getBarCodeLocation();
+        Location locationInDb = locationRepository.findByBarCodeLocation(barCodeLocation);
+        if (locationInDb != null) {
+            JSONObject jsonObjectToRespone = new JSONObject();
+            jsonObjectToRespone.put("Status","Exist");
+
+            return ResponseEntity.ok(jsonObjectToRespone.toString());
+
+
+        } else {
+            JSONObject jsonObjectToRespone = new JSONObject();
+
+            jsonObjectToRespone.put("Status","NotExist");
+            return ResponseEntity.ok(jsonObjectToRespone.toString());
+
+        }
+    }
 
     private JSONObject jsonToRespone(Location location) {
         JSONObject jsonObject = new JSONObject();
